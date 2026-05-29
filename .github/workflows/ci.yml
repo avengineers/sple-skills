@@ -1,0 +1,126 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+    workflow_dispatch:
+        inputs:
+            prerelease_token:
+                description: "Prerelease token for release candidates (e.g. rc, rc1.dev)"
+                required: false
+                default: "rc"
+
+concurrency:
+    group: ${{ github.head_ref || github.run_id }}
+    cancel-in-progress: true
+
+jobs:
+    lint:
+        name: Lint Commit Messages
+        runs-on: ubuntu-24.04
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - uses: wagoid/commitlint-github-action@v5
+
+    test:
+        name: Tests (${{ matrix.os }})
+        runs-on: ${{ matrix.os }}
+        needs:
+            - lint
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - os: ubuntu-latest
+                      flag: ubuntu
+                    - os: windows-latest
+                      flag: windows
+        permissions:
+            contents: read
+            checks: write
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v6
+              with:
+                  enable-cache: true
+
+            - name: Set up Python
+              run: uv python install 3.12
+
+            - name: Run tests
+              id: pytest
+              continue-on-error: true
+              run: uv run --group dev pytest -q --cov=plugins --cov-report=xml --junit-xml=junit.xml
+
+            - name: Upload coverage to Codecov
+              if: always()
+              uses: codecov/codecov-action@v5
+              with:
+                  files: coverage.xml
+                  flags: ${{ matrix.flag }}
+                  fail_ci_if_error: true
+                  token: ${{ secrets.CODECOV_TOKEN }}
+
+            - name: Upload test results to Codecov
+              if: always()
+              uses: codecov/codecov-action@v5
+              with:
+                  files: junit.xml
+                  flags: ${{ matrix.flag }}
+                  report_type: test_results
+                  fail_ci_if_error: true
+                  token: ${{ secrets.CODECOV_TOKEN }}
+
+            - name: Publish JUnit test results
+              if: always()
+              uses: mikepenz/action-junit-report@v6
+              with:
+                  report_paths: junit.xml
+                  check_name: Test Results (${{ matrix.flag }})
+                  fail_on_failure: true
+                  require_tests: true
+                  detailed_summary: true
+                  include_passed: false
+
+    release:
+        needs:
+            - test
+            - lint
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+        runs-on: ubuntu-24.04
+        environment: release
+        concurrency: release
+        permissions:
+            id-token: write
+            contents: write
+
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+
+            - name: Release
+              uses: python-semantic-release/python-semantic-release@v9.16.1
+              id: release
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Publish GitHub Release
+              uses: python-semantic-release/publish-action@v9
+              if: steps.release.outputs.released == 'true'
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
