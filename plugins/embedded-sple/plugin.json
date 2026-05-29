@@ -1,5 +1,5 @@
 {
-  "name": "embedded-sple",
+  "name": "avengineers-embedded-sple",
   "description": "Embedded software product line engineering skills \u2014 code review (BARR-C, MISRA, HIS), unit/integration testing (GTest), static analysis (Polyspace), coverage tracking, and development workflows.",
   "version": "0.1.2",
   "author": {
