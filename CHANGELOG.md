@@ -1,6 +1,21 @@
 # CHANGELOG
 
 
+## v0.1.0 (2026-05-29)
+
+### Bug Fixes
+
+- Configure develop as release branch and add manual RC workflow
+  ([#1](https://github.com/avengineers/sple-skills/pull/1),
+  [`3976549`](https://github.com/avengineers/sple-skills/commit/397654942e5b189ededdf71b2589b7177d4a464c))
+
+- Set develop as the primary release branch (full versions) - Add release-rc job for manual
+  prerelease via workflow_dispatch - Reset version to 0.1.0 (remove erroneous rc.1 suffix) - Remove
+  outdated junitxml path from pytest addopts
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+
 ## v0.1.0-rc.1 (2026-05-29)
 
 ### Bug Fixes
