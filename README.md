@@ -23,15 +23,15 @@ Agent skills for embedded software product line engineering. Skills follow the [
 
 ```
 /plugin marketplace add https://github.com/avengineers/sple-skills.git
-/plugin marketplace browse sple-skills
-/plugin install embedded-sple@sple-skills
+/plugin marketplace browse avengineers-sple-skills
+/plugin install avengineers-embedded-sple@avengineers-sple-skills
 ```
 
 ### Claude Code
 
 ```
 /plugin marketplace add https://github.com/avengineers/sple-skills.git
-/plugin install embedded-sple@sple-skills
+/plugin install avengineers-embedded-sple@avengineers-sple-skills
 ```
 
 ### VS Code
