@@ -1,6 +1,17 @@
 # CHANGELOG
 
 
+## v0.1.1 (2026-05-29)
+
+### Bug Fixes
+
+- Add tests for sync_version script and improve coverage
+  ([#1](https://github.com/avengineers/sple-skills/pull/1),
+  [`52a0cbf`](https://github.com/avengineers/sple-skills/commit/52a0cbf703253edfd04f611c591262494b9fc303))
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+
 ## v0.1.0 (2026-05-29)
 
 ### Bug Fixes
