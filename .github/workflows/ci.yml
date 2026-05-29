@@ -131,3 +131,47 @@ jobs:
               if: steps.release.outputs.released == 'true'
               with:
                   github_token: ${{ steps.app-token.outputs.token }}
+
+    release-rc:
+        needs:
+            - test
+            - lint
+        if: github.event_name == 'workflow_dispatch'
+
+        runs-on: ubuntu-24.04
+        environment: release
+        concurrency: release
+        permissions:
+            contents: read
+
+        steps:
+            - name: Generate App Token
+              id: app-token
+              uses: actions/create-github-app-token@v1
+              with:
+                  app-id: ${{ secrets.APP_ID }}
+                  private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  token: ${{ steps.app-token.outputs.token }}
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
+
+            - name: Release RC
+              uses: python-semantic-release/python-semantic-release@v9.16.1
+              id: release
+              with:
+                  github_token: ${{ steps.app-token.outputs.token }}
+                  prerelease: true
+                  prerelease_token: ${{ inputs.prerelease_token }}
+
+            - name: Publish GitHub Pre-Release
+              uses: python-semantic-release/publish-action@v9
+              if: steps.release.outputs.released == 'true'
+              with:
+                  github_token: ${{ steps.app-token.outputs.token }}
