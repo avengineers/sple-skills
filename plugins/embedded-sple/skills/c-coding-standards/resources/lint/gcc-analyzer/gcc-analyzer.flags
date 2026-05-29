@@ -1,0 +1,13 @@
+-std=c99
+-Wall
+-Wextra
+-Wpedantic
+-Wconversion
+-Wsign-conversion
+-Wshadow
+-Wundef
+-Werror
+
+# Static analyzer (path-sensitive, expensive):
+-fanalyzer
+-Wanalyzer-too-complex

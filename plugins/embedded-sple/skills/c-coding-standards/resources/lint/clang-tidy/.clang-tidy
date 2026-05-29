@@ -1,0 +1,35 @@
+---
+# Managed by c-coding-standards skill (resources/lint/clang-tidy/.clang-tidy)
+# clang-tidy config is YAML and is auto-discovered up the directory tree. [3](https://lindevs.com/generate-json-compilation-database-using-cmake)[4](https://developers.redhat.com/blog/2020/03/26/static-analysis-in-gcc-10)
+
+Checks: >
+  -*,
+  clang-diagnostic-*,
+  clang-analyzer-*,
+  bugprone-*,
+  portability-*,
+  readability-braces-around-statements,
+  readability-implicit-bool-conversion,
+  readability-simplify-boolean-expr,
+  misc-definitions-in-headers,
+  misc-unused-parameters
+
+# Fail CI on any enabled diagnostic.
+WarningsAsErrors: '*'
+
+# Only report diagnostics in your project headers (adjust to your tree).
+# clang-tidy supports header filtering via HeaderFilterRegex. [3](https://lindevs.com/generate-json-compilation-database-using-cmake)
+HeaderFilterRegex: '^(src|include|drivers)/'
+
+# Keep formatting out of clang-tidy (style is handled by other tooling).
+FormatStyle: none
+
+CheckOptions:
+  # BARR-C "always braces" support: require braces even for short statements.
+  - key: readability-braces-around-statements.ShortStatementLines
+    value: '0'
+
+  # If any checks refer to NULL as a macro (helps tool understand NULL usage).
+  - key: modernize-use-nullptr.NullMacros
+    value: 'NULL'
+...
