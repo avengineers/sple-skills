@@ -94,6 +94,7 @@ class TestUpdatePluginJson:
 class TestMain:
     def test_syncs_all_manifests(self, tmp_path, monkeypatch):
         monkeypatch.setattr("sync_version.ROOT", tmp_path)
+        monkeypatch.setattr("sync_version.git_add", lambda _: None)
 
         # Create pyproject.toml
         pyproject = tmp_path / "pyproject.toml"
@@ -132,6 +133,7 @@ class TestMain:
 
     def test_skips_missing_manifests(self, tmp_path, monkeypatch):
         monkeypatch.setattr("sync_version.ROOT", tmp_path)
+        monkeypatch.setattr("sync_version.git_add", lambda _: None)
 
         pyproject = tmp_path / "pyproject.toml"
         pyproject.write_text('[project]\nversion = "1.0.0"\n', encoding="utf-8")
