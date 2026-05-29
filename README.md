@@ -1,5 +1,20 @@
 # sple-skills
 
+<p align="center">
+  <a href="https://github.com/avengineers/sple-skills/actions/workflows/ci.yml">
+    <img src="https://github.com/avengineers/sple-skills/actions/workflows/ci.yml/badge.svg" alt="CI Status">
+  </a>
+  <a href="https://github.com/avengineers/sple-skills/blob/develop/LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT">
+  </a>
+  <a href="https://github.com/avengineers/sple-skills">
+    <img src="https://img.shields.io/badge/Python-3.11%2B-blue.svg" alt="Python 3.11+">
+  </a>
+  <a href="https://codecov.io/gh/avengineers/sple-skills">
+    <img src="https://codecov.io/gh/avengineers/sple-skills/branch/develop/graph/badge.svg" alt="Coverage">
+  </a>
+</p>
+
 Agent skills for embedded software product line engineering. Skills follow the [Agent Skills specification](https://agentskills.io) and work across multiple AI coding agents (Copilot CLI, VS Code Copilot, Claude Code).
 
 ## Installation
