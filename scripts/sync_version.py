@@ -2,6 +2,7 @@
 
 import json
 import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
@@ -37,6 +38,10 @@ def update_plugin_json(filepath: Path, version: str) -> None:
     filepath.write_text(json.dumps(content, indent=2) + "\n", encoding="utf-8")
 
 
+def git_add(filepath: Path) -> None:
+    subprocess.run(["git", "add", str(filepath)], cwd=ROOT, check=True)
+
+
 def main():
     version = get_version_from_pyproject()
     print(f"Syncing version {version} to manifest files...")
@@ -48,11 +53,13 @@ def main():
     for manifest in manifests:
         if manifest.exists():
             update_json_version(manifest, version)
+            git_add(manifest)
             print(f"  Updated {manifest.relative_to(ROOT)}")
 
     plugin_json = ROOT / "plugins" / "embedded-sple" / "plugin.json"
     if plugin_json.exists():
         update_plugin_json(plugin_json, version)
+        git_add(plugin_json)
         print(f"  Updated {plugin_json.relative_to(ROOT)}")
 
 
