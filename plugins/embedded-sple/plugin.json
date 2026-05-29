@@ -1,13 +1,22 @@
 {
   "name": "embedded-sple",
-  "description": "Embedded software product line engineering skills — code review (BARR-C, MISRA, HIS), unit/integration testing (GTest), static analysis (Polyspace), coverage tracking, and development workflows.",
-  "version": "0.1.0",
+  "description": "Embedded software product line engineering skills \u2014 code review (BARR-C, MISRA, HIS), unit/integration testing (GTest), static analysis (Polyspace), coverage tracking, and development workflows.",
+  "version": "0.1.2",
   "author": {
     "name": "SPLE Platform Team"
   },
   "repository": "https://github.com/avengineers/sple-skills.git",
   "license": "MIT",
-  "keywords": ["embedded", "c", "misra", "barr-c", "polyspace", "gtest", "code-review", "tdd"],
+  "keywords": [
+    "embedded",
+    "c",
+    "misra",
+    "barr-c",
+    "polyspace",
+    "gtest",
+    "code-review",
+    "tdd"
+  ],
   "category": "development",
   "skills": "skills/"
 }

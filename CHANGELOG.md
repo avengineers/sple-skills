@@ -1,6 +1,20 @@
 # CHANGELOG
 
 
+## v0.1.2 (2026-05-29)
+
+### Bug Fixes
+
+- Git-add JSON manifests during version sync for semantic-release
+  ([#1](https://github.com/avengineers/sple-skills/pull/1),
+  [`8bc44b4`](https://github.com/avengineers/sple-skills/commit/8bc44b4b011b1df4b88cf156e489154099ed15c8))
+
+The build_command script now stages updated JSON files so they are included in the release commit by
+  python-semantic-release.
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+
 ## v0.1.1 (2026-05-29)
 
 ### Bug Fixes
