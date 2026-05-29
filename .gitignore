@@ -1,0 +1,17 @@
+.DS_Store
+__pycache__/
+.idea/
+.vscode/
+.mypy_cache/
+.pytest_cache/
+*.pyc
+*.pyo
+
+# uv / virtualenv
+.venv/
+
+# Coverage / test reports
+.coverage
+coverage.xml
+htmlcov/
+junit.xml
