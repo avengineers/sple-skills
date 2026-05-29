@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.1.3 (2026-05-29)
+
+### Bug Fixes
+
+- Rename marketplace from sple-skills to avengineers-sple-skills
+  ([#1](https://github.com/avengineers/sple-skills/pull/1),
+  [`0156b6b`](https://github.com/avengineers/sple-skills/commit/0156b6bc6f8717b6a45cbab0c228ab0dae4dfc7e))
+
+Avoids name collision with internal marketplace.
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+
 ## v0.1.2 (2026-05-29)
 
 ### Bug Fixes

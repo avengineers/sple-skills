@@ -2,7 +2,7 @@
   "name": "avengineers-sple-skills",
   "metadata": {
     "description": "Agent skills for embedded software product line engineering \u2014 code review, testing, static analysis, and development workflows.",
-    "version": "0.1.2"
+    "version": "0.1.3"
   },
   "owner": {
     "name": "Avengineers"
@@ -11,7 +11,7 @@
     {
       "name": "avengineers-embedded-sple",
       "description": "Embedded software product line engineering skills \u2014 code review (BARR-C, MISRA, HIS), unit/integration testing (GTest), static analysis (Polyspace), coverage tracking, and development workflows.",
-      "version": "0.1.2",
+      "version": "0.1.3",
       "source": "./plugins/embedded-sple",
       "category": "development",
       "keywords": [
