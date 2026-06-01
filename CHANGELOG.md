@@ -1,6 +1,24 @@
 # CHANGELOG
 
 
+## v0.1.4 (2026-06-01)
+
+### Bug Fixes
+
+- Quote YAML frontmatter description in project-knowledge-base skill
+  ([`5310adc`](https://github.com/avengineers/sple-skills/commit/5310adcfdef8d9b6645e2a0a1007e607424eb5b5))
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+### Documentation
+
+- Update README install commands to use new marketplace names
+  ([#1](https://github.com/avengineers/sple-skills/pull/1),
+  [`2b47d69`](https://github.com/avengineers/sple-skills/commit/2b47d69b8bb7df53431ab3ef9a145ca8af95655d))
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+
 ## v0.1.3 (2026-05-29)
 
 ### Bug Fixes
