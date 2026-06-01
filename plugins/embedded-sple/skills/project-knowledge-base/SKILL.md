@@ -1,6 +1,6 @@
 ---
 name: project-knowledge-base
-description: Set up and maintain a structured project memory system in doc/project_notes/ that tracks bugs with solutions, architectural decisions, key project facts, and work history. Use when asked to "set up project memory", "log a bug fix", "track decisions", or "initialize memory system". Also triggers proactively: before proposing architectural changes, when encountering errors that might have been seen before, or when hardware/toolchain configuration is needed. Any embedded project with recurring problems or institutional knowledge benefits from this.
+description: "Set up and maintain a structured project memory system in doc/project_notes/ that tracks bugs with solutions, architectural decisions, key project facts, and work history. Use when asked to 'set up project memory', 'log a bug fix', 'track decisions', or 'initialize memory system'. Also triggers proactively: before proposing architectural changes, when encountering errors that might have been seen before, or when hardware/toolchain configuration is needed. Any embedded project with recurring problems or institutional knowledge benefits from this."
 ---
 
 # Project Memory
