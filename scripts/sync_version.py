@@ -56,11 +56,17 @@ def main():
             git_add(manifest)
             print(f"  Updated {manifest.relative_to(ROOT)}")
 
-    plugin_json = ROOT / "plugins" / "embedded-sple" / "plugin.json"
-    if plugin_json.exists():
-        update_plugin_json(plugin_json, version)
-        git_add(plugin_json)
-        print(f"  Updated {plugin_json.relative_to(ROOT)}")
+    # Both the root plugin.json (Copilot CLI / Agent Skills spec) and the
+    # .claude-plugin/plugin.json (Claude Code) must stay version-synced.
+    plugin_jsons = [
+        ROOT / "plugins" / "embedded-sple" / "plugin.json",
+        ROOT / "plugins" / "embedded-sple" / ".claude-plugin" / "plugin.json",
+    ]
+    for plugin_json in plugin_jsons:
+        if plugin_json.exists():
+            update_plugin_json(plugin_json, version)
+            git_add(plugin_json)
+            print(f"  Updated {plugin_json.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":
