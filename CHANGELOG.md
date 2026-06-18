@@ -1,6 +1,24 @@
 # CHANGELOG
 
 
+## v0.1.6 (2026-06-18)
+
+### Bug Fixes
+
+- Make Claude Code plugin manifest pass schema validation
+  ([`6edade8`](https://github.com/avengineers/sple-skills/commit/6edade8bdc94957c606af639bfaec59e73d8d4f3))
+
+The .claude-plugin/plugin.json used "skills": "skills/", which Claude Code rejects with 'skills:
+  Invalid input' — the field must be a "./"-prefixed path or array, and the conventional skills/
+  directory is auto-discovered anyway. Drop the field so the manifest validates; skills are still
+  picked up from skills/ at the plugin root.
+
+Also bump the copy to 0.1.5 and teach sync_version.py to keep the .claude-plugin/plugin.json version
+  in lockstep with the root plugin.json, so the two manifests stop drifting on each release.
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+
 ## v0.1.5 (2026-06-18)
 
 ### Bug Fixes
