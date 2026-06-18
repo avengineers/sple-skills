@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.1.5 (2026-06-18)
+
+### Bug Fixes
+
+- Add plugin manifest at .claude-plugin/plugin.json for Claude Code
+  ([`207dd3d`](https://github.com/avengineers/sple-skills/commit/207dd3de2b0833c45daaee1423311a01f4f63e7a))
+
+Claude Code resolves a plugin's manifest at <source>/.claude-plugin/plugin.json, whereas the
+  existing manifest only lived at <source>/plugin.json (the location Copilot CLI / the Agent Skills
+  spec expect). The missing path caused a manifest error on '/plugin install
+  avengineers-embedded-sple@avengineers-sple-skills'.
+
+Keep the root plugin.json for Copilot/VS Code and add a copy under .claude-plugin/.
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>
+
+
 ## v0.1.4 (2026-06-01)
 
 ### Bug Fixes
