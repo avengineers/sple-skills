@@ -101,27 +101,35 @@ If no issue reference is found in the branch name, omit the parenthesized suffix
 |------|-------------|---------|
 | `feat` | New feature or capability | `feat: add baudrate configuration for UART (PROJ-1001)` |
 | `fix` | Bug fix that corrects behavior | `fix: correct ADC channel selection bitmask (PROJ-1004)` |
-| `refactor` | Code restructuring without behavior change | `refactor: extract validation logic from StateMgr (PROJ-1010)` |
-| `style` | Formatting-only changes (whitespace, indentation) | `style: apply BARR-C formatting to HAL module (PROJ-1011)` |
+| `refactor` | Code restructuring without behavior change (production code only) | `refactor: extract validation logic from StateMgr (PROJ-1010)` |
+| `style` | Formatting-only changes in production code (whitespace, indentation) | `style: apply BARR-C formatting to HAL module (PROJ-1011)` |
 | `chore` | Maintenance tasks (build, config, deps) | `chore: update CMake minimum version (PROJ-1007)` |
 | `docs` | Documentation-only changes | `docs: add README for component setup (PROJ-1008)` |
-| `test` | Adding or modifying tests (no production code) | `test: add StateMgr state machine unit tests (PROJ-1002)` |
+| `test` | **Any** change limited to test files — new tests, refactoring, style cleanup, magic-number replacement, comment updates | `test: add StateMgr state machine unit tests (PROJ-1002)` |
+
+> **RULE**: If the staged changes touch **only test files** (e.g. `test_*.cc`, `*_test.cc`, files under `test/`), the type is **always `test:`** — regardless of whether the change adds tests, refactors logic, cleans up style, replaces magic numbers, or updates comments. Never use `style:`, `refactor:`, or `chore:` for changes limited to test files.
 
 ### Type Selection Decision Tree
 
 ```text
-Did you change production code?
-├── YES: Did behavior change?
-│   ├── YES: Is it a bug fix?    → `fix`
-│   │   └── NO: Is it a new feature? → `feat`
-│   └── NO: Is it restructuring? → `refactor`
-│       └── NO: Is it formatting? → `style`
-└── NO: Did you change tests only?
-    ├── YES → `test`
+Did you change ONLY test files (test_*.cc, *_test.cc, files under test/)?
+├── YES → `test`  (always — even for style/refactor/magic-number cleanup within tests)
+└── NO: Did you change production code?
+    ├── YES: Did behavior change?
+    │   ├── YES: Is it a bug fix?    → `fix`
+    │   │   └── NO: Is it a new feature? → `feat`
+    │   └── NO: Is it restructuring? → `refactor`
+    │       └── NO: Is it formatting? → `style`
     └── NO: Did you change docs only?
         ├── YES → `docs`
         └── NO → `chore`
 ```
+
+> **Examples of `test:` commits** (not `style:` or `refactor:`):
+> - Replacing magic numbers with defines inside a test file
+> - Reformatting or rewriting comments in a test file
+> - Restructuring test setup/teardown without adding new test cases
+> - Renaming variables or extracting helpers within a test file
 
 ---
 
