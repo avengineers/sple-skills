@@ -38,6 +38,7 @@ Before full review, verify these common issues:
 - All pointers validated before use (!=NULL)
 - No divisions without zero-check
 - `static`, `volatile`, `const` used appropriately
+- `#define`/`enum` values owned by the provider/server module, not redefined by clients/receivers (→ CHK_Code #43)
 - No hollow Polyspace justifications (see below)
 
 ## Hollow Justification Detection
@@ -74,7 +75,7 @@ A valid justification states: (1) what the code does, (2) why it's safe despite 
 
 For comprehensive review, load the complete checklist:
 
-- **[CHK_Code Checklist](references/chk-code-checklist.md)**: Full 41-item company review checklist
+- **[CHK_Code Checklist](references/chk-code-checklist.md)**: Full 43-item company review checklist
 - **[Barr-C:2018 Quick Scan](../c-coding-standards/checklists/11-quick-scan.md)**: Fast pass for high-risk patterns
 - **[Barr-C:2018 PR Review Checklist](../c-coding-standards/checklists/12-pr-review.md)**: Structured PR review process
 

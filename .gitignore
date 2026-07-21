@@ -19,3 +19,6 @@ junit.xml
 # Temporary development files
 REVIEW.md
 ROADMAP.md
+
+# MSYS2 / Git Bash crash dumps
+*.stackdump

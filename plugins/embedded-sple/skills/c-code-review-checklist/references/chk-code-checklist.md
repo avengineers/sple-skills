@@ -1,6 +1,6 @@
 # CHK_Code Review Checklist
 
-Complete 42-item code review checklist for C source files.
+Complete 43-item code review checklist for C source files.
 
 ## Git/Version Control
 
@@ -88,3 +88,11 @@ Complete 42-item code review checklist for C source files.
 
 - [ ] **#41** Consistency between software requirements and software units (completeness and correctness)
 - [ ] **#42** Consistency between architectural design, detailed design, and software units
+
+## Architecture & Module Responsibility
+
+- [ ] **#43** `#define` constants and `enum` types are owned by their **provider/server**, not redefined by receivers/clients
+  - A module must not define constants or enumerations that semantically belong to another module's interface. The provider's header owns the symbols; clients `#include` that header instead of declaring their own copy.
+  - **Correct pattern**: interface symbols live once in the provider header and are consumed by clients — e.g. in SPLED, `POWER_STATE_ON`, `CONTROL_KEY_UP`, and `POWER_BUTTON_KEY` are defined in `rte.h` and included by `main_control_knob`, `auto_off`, and `power_button`.
+  - **Wrong pattern**: a client/receiver defines its own copy of a provider's `#define`/`enum` values — including "temporary workaround" defines (e.g. `// temp until module X provides it`). These are architecture violations regardless of the workaround justification and must be tracked as findings.
+  - **Detection**: for every `#define`/`enum` in the file, ask "Is this module the authoritative owner of this interface?" In a project that uses module-name prefixes on symbols, a name carrying a *different* module's prefix is a definitive red flag that the symbol belongs elsewhere.
