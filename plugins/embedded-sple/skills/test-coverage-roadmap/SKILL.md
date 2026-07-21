@@ -68,6 +68,7 @@ These extend the common forbidden behaviors from the shared workflow engine.
 | Forbidden Action | Why It's Forbidden |
 |------------------|--------------------|
 | Testing multiple functions in one step | Each step must test exactly ONE function for focused review |
+| Writing test code before consulting the spec (Step 2.3.5) | Test cases must be derived from requirements, not only from code paths |
 | Skipping coverage measurement (Step 2.6) | Coverage must come from actual HTML report, not estimates |
 | Presenting approval checkpoint without coverage output | Human needs real metrics to approve |
 | Guessing coverage values | Must extract from HTML report via `Select-String` |
@@ -125,9 +126,24 @@ Document: functions to test, test scenarios (Given/When/Then), expected coverage
 
 Present plan via `ask_user` for explicit approval before writing any test code.
 
+### Specification Consultation (Step 2.3.5 — before writing any test code)
+
+> **MANDATORY — NEVER SKIP**: Derive test cases from the specification, not only from the code paths.
+
+1. Read the relevant spec/requirement documents for the function under test (component `doc/index.md`, software/unit specification).
+2. Compare the spec against the current implementation: does the code do something the spec does not describe, or omit behaviour the spec requires?
+3. If a discrepancy is found: **STOP** — do not write the test yet. Ask the user whether the test should pin down the **specification** (test may fail = documents a potential defect) or the **current implementation**. Record the decision in the step documentation.
+
+See the `c-unit-testing` skill section "Specification-First Test Design" for the full rule and conflict-handling template.
+
 ### Write Tests (Step 2.4)
 
-Before writing ANY test code, invoke the `c-unit-testing` skill.
+Before writing ANY test code, first determine the test level, then invoke the matching skill:
+
+- **Isolated component** (all dependencies mocked) → `c-unit-testing` skill
+- **Multiple real components compiled together** → `c-integration-testing` skill
+
+See the `c-unit-testing` skill section "Choosing the Test Level" for the decision rule.
 
 ### Build & Test (Step 2.5)
 
@@ -157,6 +173,7 @@ Extract: line coverage %, function coverage %, branch coverage %, delta. **FORBI
 ║ 2.1 Analyze function             │ [ ]  │ Signature, Lines, Complexity       ║
 ║ 2.2 Plan tests                   │ [ ]  │ Test scenarios listed              ║
 ║ 2.3 Human approved plan          │ [ ]  │ User said: ________________        ║
+║ 2.3.5 Spec consulted (Pass 1)    │ [ ]  │ Sections read + conflict decision  ║
 ║ 2.4 Tests written                │ [ ]  │ File: ____, Tests added: ____      ║
 ║ 2.5 Build & tests pass           │ [ ]  │ Exit code: ____ Passed: ____/____  ║
 ║ 2.6 Coverage measured (from HTML)│ [ ]  │ Before/After/Delta/Function/Branch ║
@@ -219,7 +236,8 @@ When deciding which functions to include in the roadmap, consider these factors.
 | Phase        | Skill to Invoke                | Mandatory |
 |--------------|--------------------------------|-----------|
 | Analysis     | `c-code-review-comprehensive`  | YES |
-| Test Writing | `c-unit-testing`           | YES — all tests |
+| Test Writing | `c-unit-testing`           | YES — isolated component tests |
+| Test Writing | `c-integration-testing`    | YES — when tests compile multiple real components together |
 | Each Step    | `retrospective`               | YES |
 | Coverage     | Shared [coverage-analysis.md](../shared/test-reports/coverage-analysis.md) | YES — every step & final |
 | Commit       | `conventional-commits`         | YES |
