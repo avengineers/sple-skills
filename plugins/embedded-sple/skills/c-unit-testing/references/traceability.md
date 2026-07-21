@@ -462,6 +462,39 @@ TEST(LED, ImportantTest)
 }
 ```
 
+### 5. Invented Requirement or Test IDs
+
+Never fabricate a `:tests:` requirement ID or a `:id:` test ID. An ID that does not exist in the
+spec files silently breaks the traceability tooling — the mapping looks complete but points at
+nothing.
+
+```cpp
+// WRONG: guessed the requirement ID because it "looked about right"
+:tests: SWDD_LED-999      // no such requirement in doc/index.md
+
+// CORRECT: grep the spec first, use only IDs that actually exist
+//   rg "SWDD_LED-" components/led/doc/index.md
+:tests: SWDD_LED-100
+```
+
+Requirement IDs live in `components/<name>/doc/index.md` (and any linked software/unit
+specification). Search for the ID before writing it.
+
+### 6. Paraphrased Requirement Text in Comments
+
+When you copy requirement text into a traceability comment, copy it **verbatim** from the source.
+A paraphrase drifts from the requirement and misleads the next reader into trusting a summary that
+may no longer match the spec.
+
+```cpp
+// CORRECT — verbatim from the component design doc (doc/index.md, SWDD_PSP-002)
+/* traceability: SWDD_PSP-002 - If the retrieved power state is POWER_STATE_OFF, the
+   function shall set the power state to POWER_STATE_ON. */
+
+// WRONG — paraphrased interpretation
+/* traceability: SWDD_PSP-002 - turns power on when it was off */
+```
+
 ## Workflow Integration
 
 ### 1. Create Test with Traceability

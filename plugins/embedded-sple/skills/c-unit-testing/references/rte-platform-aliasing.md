@@ -129,7 +129,7 @@ TEST(MyComponent, OutputsCorrectSignal_WhenProcessed) {
   and prevents accidental collisions with production symbol names.
 - Use the **logical signal name** (not the platform name) in the alias:
   - ✅ `COMP_TEST_RTE_OutputSignal`
-  - ❌ `COMP_TEST_RTE_MMA_OutputSignal`
+  - ❌ `COMP_TEST_RTE_Disco_OutputSignal`
 
 ### Placement
 

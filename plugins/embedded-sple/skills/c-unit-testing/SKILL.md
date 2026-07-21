@@ -29,6 +29,46 @@ Unit tests should:
 3. **Specify Behavior**: Describe what the component does, not how
 4. **Prevent Regressions**: Lock in behavior to prevent accidental changes
 
+## Choosing the Test Level
+
+Before writing a single line, decide whether you are actually writing a unit test:
+
+| Scenario | Test level | Skill to use |
+|---|---|---|
+| Exactly ONE component in isolation, all dependencies mocked | **Unit test** | This skill |
+| TWO or more real component implementations compiled and exercised together | **Integration test** | `c-integration-testing` skill |
+| Mixed (isolated logic + inter-component paths) | **Both** | Unit tests here + integration tests there |
+
+> **RULE**: If a test requires two real production modules compiled together and exercised against
+> each other, it is an integration test — even when it uses GTest and GMock. Writing it here would
+> produce a false sense of unit isolation. Use the `c-integration-testing` skill instead.
+
+## Specification-First Test Design
+
+> Test cases are derived from the **specification**, not only from the code paths.
+
+**Before writing tests** — read the relevant design/requirement documents for the function under
+test (component `doc/index.md`, software/unit specification, requirement-management IDs). Derive
+test cases from required behavior, not just from what the code happens to do.
+
+**When the code contradicts the specification** — do not silently make the test follow the code.
+Stop and ask the user which behavior the test should pin down:
+
+```text
+DECISION REQUIRED - Spec/Implementation Conflict
+Spec  <SPEC_ID>: "<verbatim requirement text>"
+Code  : <what the current implementation does>
+
+  A) Test verifies CURRENT IMPLEMENTATION -> test passes, potential defect remains hidden
+  B) Test verifies SPECIFICATION          -> test FAILS, documents a potential defect
+```
+
+If the user chooses B, write the test to express the spec-correct behavior and mark it clearly as
+intentionally failing (with a comment referencing the spec ID and the divergence).
+
+**After writing tests** — add the new test IDs back into the traceability source (component
+`doc/index.md` / spec test chapter) so the requirement-to-test mapping stays complete.
+
 ## Quick Start
 
 ### Build and Run Tests
@@ -309,6 +349,8 @@ Every test must link to requirements using RST documentation blocks (format show
 - **Test name**: Must match actual `TEST()`, `TEST_F()`, or `TEST_P()` name
 - **Test ID**: `TS_<COMP>-###` (sequential, zero-padded to 3 digits)
 - **Requirements**: Comma-separated list of SWDD IDs (find in `components/<name>/doc/index.md`)
+- **Only use IDs that exist**: Never invent requirement or test IDs — an invented ID silently breaks traceability tooling. Grep the spec files/`doc/index.md` for the exact ID before writing it.
+- **Quote requirements verbatim**: When copying requirement text into a traceability comment, copy it exactly from the source — never paraphrase (a paraphrase drifts from the requirement and misleads reviewers).
 - **Parameterized tests**: Use wildcard `.. test:: SuiteName/FixtureName.TestName/*` **only when all parameter instances test the same requirement(s)**. If different cases trace to different requirements, use plain `TEST()` with individual RST blocks instead.
 
 **See**: [references/traceability.md](references/traceability.md) for complete traceability guide
@@ -336,6 +378,50 @@ Every test must link to requirements using RST documentation blocks (format show
 - **Use custom matchers**: Cleaner than field-by-field checks
 - **Keep tests simple**: Tests should be easier to understand than production code
 - **Fast execution**: Simulate time with ticks, don't use real delays
+
+### No Magic Numbers — In Code and In Comments
+
+Never write a raw numeric literal that stands for a domain value — not in code, and not in
+comments, RST blocks, or ARRANGE/ACT/ASSERT annotations. This includes embedding the *current*
+value of a `#define`/`enum` as a parenthetical such as `(= 193)` or `(90..238)`: when the constant
+changes, the annotation goes silently wrong and misleads the next reader.
+
+```cpp
+// BAD — raw literal in code and in the comment; meaning unclear, breaks silently if the enum changes
+RteSetPowerState(1);                 // what does 1 mean?
+/* toggles because the previous state was 0 */
+
+// GOOD — symbolic constant everywhere, including prose
+RteSetPowerState(POWER_STATE_ON);
+/* toggles because the previous state was POWER_STATE_OFF */
+```
+
+**Accepted exceptions** (state the reason in a comment): a constant defined only in a
+hardware/generated header that cannot be included in the test translation unit, or a typical
+analog signal value for which the code defines only threshold constants. The exception covers the
+code literal only — the symbolic name must still appear in the surrounding prose. Application-level
+headers are always reachable in a test build; include them rather than hard-coding their values.
+
+### Keep Comments Robust Against Config Changes
+
+- **No hard-coded feature-switch values or variant names in comments.** Feature-switch values
+  (`= 0` / `= 1`) and variant/project names change over time; naming them in comments creates
+  documentation that is wrong the moment the configuration changes. List feature switches by name
+  and effect only, and label `#else` branches by their *convention* (e.g. "default RTE prefix"),
+  not by a specific variant.
+- **Verify enum/constant values against the real source header**, not against spec or doc files —
+  specs can lag behind the code by one or more refactoring cycles. Grep the defining header before
+  using a value; if the doc disagrees, fix the doc first (separate change), then test against the
+  source of truth.
+
+### File Encoding — Pure ASCII in Test Files
+
+Keep test files pure ASCII. Special Unicode characters (em/en dash `–`, right arrow `→`,
+ellipsis `…`, multiplication `×`, smart quotes) turn into mojibake when files round-trip through
+tools with mismatched encodings.
+
+- Use `-` not `–`, `->` not `→`, `...` not `…`, `x` not `×`, and straight quotes `"` `'`.
+- Quick check: `python -c "print(sum(1 for c in open('FILE',encoding='utf-8-sig').read() if ord(c)>127))"` should print `0`.
 
 ## Reference Documents
 
