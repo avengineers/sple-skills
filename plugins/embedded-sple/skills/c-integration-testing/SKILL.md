@@ -187,6 +187,37 @@ gtest_discover_tests(integration_subsystem_test
 )
 ```
 
+## Build-Time Interface-Wiring Verification
+
+> **Applies only when a code generator sits between components** — e.g. a generated RTE/dispatch
+> layer, IPC stubs, or a generated routing table that maps a caller's interface to a concrete
+> callee function. If components call each other directly (as with the hand-written SPLED `rte`),
+> **skip this** — a normal compile/link already fails on a missing or wrong symbol, so the technique
+> adds no value.
+
+When a generator maps an interface to a function, a mis-wiring (an interface silently pointing at
+the wrong or a non-existent function) is invisible to unit tests — they mock the interface — and
+can slip past integration tests whose assertions happen to still pass. Turn such a mis-wiring into
+a **build/link-time error** with a thin verification translation unit:
+
+1. Add one small C translation unit per caller that includes the **real generated interface
+   header** and calls through it to the generated dispatch.
+2. Expose a plain-C wrapper the test binary links against.
+3. If the generator remapped the interface to a different or missing function, the symbol does not
+   resolve and the **linker fails at build time** — before anything reaches the target.
+
+```cmake
+add_executable(integration_subsystem_test
+    ${COMPONENT_SOURCES}
+    test/integration_subsystem_test.cpp
+    test/wiring_check_component_a.c   # includes the generated interface header for component A
+)
+```
+
+**What it does NOT cover:** the runtime behavior of a wrong mapping. If two functions share a
+signature but differ in behavior, only the integration-test assertions catch it — not the link
+check.
+
 ## SetUp / ResetAll Discipline
 
 Because integration tests run real components with real state, leftover state from one test can
