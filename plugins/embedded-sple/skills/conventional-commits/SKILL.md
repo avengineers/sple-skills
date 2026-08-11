@@ -104,25 +104,56 @@ If no issue reference is found in the branch name, omit the parenthesized suffix
 | `refactor` | Code restructuring without behavior change (production code only) | `refactor: extract validation logic from StateMgr (PROJ-1010)` |
 | `style` | Formatting-only changes in production code (whitespace, indentation) | `style: apply BARR-C formatting to HAL module (PROJ-1011)` |
 | `chore` | Maintenance tasks (build, config, deps) | `chore: update CMake minimum version (PROJ-1007)` |
-| `docs` | Documentation-only changes | `docs: add README for component setup (PROJ-1008)` |
+| `docs` | Documentation *about* the repository that is not shipped as a versioned asset — `README.md`, `AGENTS.md`, `CHANGELOG.md`, `doc/` | `docs: add README for component setup (PROJ-1008)` |
 | `test` | **Any** change limited to test files — new tests, refactoring, style cleanup, magic-number replacement, comment updates | `test: add StateMgr state machine unit tests (PROJ-1002)` |
 
 > **RULE**: If the staged changes touch **only test files** (e.g. `test_*.cc`, `*_test.cc`, files under `test/`), the type is **always `test:`** — regardless of whether the change adds tests, refactors logic, cleans up style, replaces magic numbers, or updates comments. Never use `style:`, `refactor:`, or `chore:` for changes limited to test files.
 
+### Shipped Agent Assets Are Source, Not Documentation
+
+A `SKILL.md` is an agent's program. It happens to be written in prose, and that is the whole trap:
+Markdown looks like documentation, so it gets committed as `docs:`.
+
+> **RULE**: When a repository **ships agent assets as a versioned product** — `SKILL.md` files,
+> their `references/` and `scripts/`, prompt files, agent definitions, plugin manifests — those
+> files are **source**. Type the commit by what it does to the shipped behaviour. Never `docs:`.
+
+| Change to a shipped agent asset | Type |
+|---|---|
+| Adds an instruction, section, check or capability an agent will act on | `feat` |
+| Corrects guidance that was wrong, ambiguous, unexecutable, or silently skipped | `fix` |
+| Rewording or restructuring that leaves agent behaviour identical | `refactor` |
+
+**Why this matters — the failure is silent.** Release automation driven by conventional commits
+(semantic-release and equivalents) bumps the version on `feat` and `fix` only. A skill change
+committed as `docs:` produces **no version bump**: the plugin manifests keep the old number, no
+release is published, and every consumer pinned to a released version never receives the change.
+The commit looks fine, the branch merges, and the improvement never ships.
+
+Because `refactor:` triggers no release either, use it only when the new wording genuinely does not
+need to reach consumers before the next `feat`/`fix`. **When in doubt, use `fix:`** — an unnecessary
+patch release costs nothing; a change that never ships costs the whole change.
+
 ### Type Selection Decision Tree
 
 ```text
-Did you change ONLY test files (test_*.cc, *_test.cc, files under test/)?
-├── YES → `test`  (always — even for style/refactor/magic-number cleanup within tests)
-└── NO: Did you change production code?
-    ├── YES: Did behavior change?
-    │   ├── YES: Is it a bug fix?    → `fix`
-    │   │   └── NO: Is it a new feature? → `feat`
-    │   └── NO: Is it restructuring? → `refactor`
-    │       └── NO: Is it formatting? → `style`
-    └── NO: Did you change docs only?
-        ├── YES → `docs`
-        └── NO → `chore`
+Did you change a shipped agent asset (SKILL.md, its references/ or scripts/,
+prompt files, agent definitions, plugin manifests)?
+├── YES: What does it do to agent behaviour?
+│   ├── Adds something an agent will act on    → `feat`
+│   ├── Corrects something wrong or unusable   → `fix`
+│   └── Nothing changes, wording only          → `refactor`
+└── NO: Did you change ONLY test files (test_*.cc, *_test.cc, files under test/)?
+    ├── YES → `test`  (always — even for style/refactor/magic-number cleanup within tests)
+    └── NO: Did you change production code?
+        ├── YES: Did behavior change?
+        │   ├── YES: Is it a bug fix?    → `fix`
+        │   │   └── NO: Is it a new feature? → `feat`
+        │   └── NO: Is it restructuring? → `refactor`
+        │       └── NO: Is it formatting? → `style`
+        └── NO: Did you change docs only?
+            ├── YES → `docs`
+            └── NO → `chore`
 ```
 
 > **Examples of `test:` commits** (not `style:` or `refactor:`):
@@ -206,6 +237,16 @@ refactor: extract CAN message parsing to module (PROJ-2000)
 style: apply consistent indentation to HAL (PROJ-2001)
 docs: update HAL documentation (PROJ-408)
 chore: update CMake minimum version
+```
+
+Shipped agent assets — note that none of these are `docs:`:
+
+```text
+feat: add interface-ownership check to c-code-review-checklist
+feat: add spec consultation step to test-coverage-roadmap
+fix: make review context steps shell-agnostic
+refactor: move review context steps into shared/review-common
+docs: require SPLED-based code examples in skills (AGENTS.md)
 ```
 
 ### Multi-line Commits (Complex Changes)
@@ -313,6 +354,7 @@ if ($message.Length -gt 72) {
 Before committing, verify:
 
 - [ ] **Type**: Correct type selected based on changes
+- [ ] **Shipped assets**: changes to `SKILL.md`, `references/`, skill `scripts/`, prompts, agent definitions or plugin manifests typed as `feat`/`fix`/`refactor` — never `docs:`
 - [ ] **Description**: Imperative mood ("add" not "added")
 - [ ] **Description**: Lowercase first letter
 - [ ] **Description**: No period at end
