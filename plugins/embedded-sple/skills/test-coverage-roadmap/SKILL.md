@@ -1,14 +1,14 @@
 ---
 name: test-coverage-roadmap
-description: Use this skill when improving unit test coverage for C components toward a 90%+ target. Guides systematic, incremental test additions with one function per step, human approval checkpoints, and file-based progress tracking. Starts with a comprehensive review to identify coverage gaps, then creates a prioritized roadmap. Trigger whenever the user wants to increase test coverage, write missing unit tests, create a test plan for untested code, or reach a coverage target — even casual requests like "we need more tests for this module".
-compatibility: "Requires PowerShell 5.1+. Depends on sibling skills - build-execution, c-unit-testing, c-code-review-comprehensive, retrospective, conventional-commits, project-knowledge-base."
+description: Use this skill when improving unit test coverage for C components toward a 90%+ target. Guides systematic, incremental test additions with one function per step, human approval checkpoints, and file-based progress tracking. Starts with a comprehensive review to identify coverage gaps, then creates a prioritized roadmap. Trigger whenever the user wants to increase test coverage, write missing unit tests, create a test plan for untested code, reach a coverage target, or resume an existing coverage roadmap — even casual requests like "we need more tests for this module".
+compatibility: "Requires PowerShell 5.1+. Depends on sibling skills - build-execution, c-unit-testing, c-integration-testing, c-code-review-comprehensive, retrospective, conventional-commits, project-knowledge-base."
 ---
 
 # Test Coverage Roadmap
 
 This skill guides systematic unit test coverage improvement for C components using an incremental approach with human stakeholder involvement at every step.
 
-> **Philosophy**: Small, focused test additions in incremental steps. Target: 90%+ coverage.
+> **Philosophy**: Small, focused test additions in incremental steps, until the agreed coverage target is reached.
 
 ## Workflow Engine
 
@@ -17,22 +17,7 @@ This skill uses the shared incremental roadmap framework.
 
 All common workflow rules (forbidden behaviors, retrospective requirements) from the shared engine apply here. The sections below define **coverage-specific** behavior.
 
-> **CRITICAL CONSTRAINT**: Follow this skill EXACTLY as written. Do NOT:
-> - Batch multiple steps together for "efficiency"
-> - Skip or combine checkpoints
-> - Proceed past a BLOCKING CHECKPOINT without explicit human approval
-> - Automatically continue to the next step after completing one
-> - Modify or remove existing template/document elements unless explicitly requested
->
-> The incremental, human-in-the-loop design is **intentional**.
-
 ---
-
-## When to Use This Skill
-
-- Improving unit test coverage for C components to reach 90%+
-- Creating a systematic test improvement plan
-- Resuming an existing coverage improvement roadmap
 
 ## First Contact
 
@@ -40,7 +25,7 @@ When the user first invokes this skill, before diving into the State Matrix:
 
 1. **Confirm component path** — ask which component to improve coverage for if not clear from the request
 2. **Explain the process** — briefly describe the three phases (analysis → iterative test addition → completion) and that every step requires human approval
-3. **Confirm target** — default is 90%, ask if the user has a different target in mind
+3. **Confirm target** — propose the default from the Domain-Specific Bindings table, ask if the user has a different target in mind, and record the agreed value in the roadmap frontmatter (`target_metrics.test_coverage_percent`)
 4. **Set expectations** — this is incremental work across multiple sessions, one function per step, not a one-shot "write all tests"
 
 Then proceed to Phase 1 (document detection via the State Matrix).
@@ -58,6 +43,8 @@ Then proceed to Phase 1 (document detection via the State Matrix).
 | Roadmap template | `references/roadmap_template.md` |
 | Step template | `references/step_template.md` |
 | Lessons learned template | `../shared/roadmap-common/lessons_learned_template.md` |
+| Coverage target | `target_metrics.test_coverage_percent` in the roadmap frontmatter (default 90%, confirmed in First Contact) |
+| Gate metric | Line coverage. Function and branch coverage are measured and reported; branch coverage must not regress. |
 
 ---
 
@@ -68,14 +55,15 @@ These extend the common forbidden behaviors from the shared workflow engine.
 | Forbidden Action | Why It's Forbidden |
 |------------------|--------------------|
 | Testing multiple functions in one step | Each step must test exactly ONE function for focused review |
-| Writing test code before consulting the spec (Step 2.3.5) | Test cases must be derived from requirements, not only from code paths |
-| Skipping coverage measurement (Step 2.6) | Coverage must come from actual HTML report, not estimates |
+| Planning or writing test scenarios before the spec is read (Step 2.1b) | Test cases must be derived from requirements, not only from code paths |
+| Writing tests at a test level the human did not approve | The level decides mocking, test file location and scenario shape — it belongs in the plan (Step 2.2), not in the writing step |
+| Skipping coverage measurement (Step 2.6) | Coverage must come from the actual `coverage.json`, not estimates |
 | Presenting approval checkpoint without coverage output | Human needs real metrics to approve |
-| Guessing coverage values | Must extract from HTML report via `Select-String` |
+| Guessing coverage values | Must extract from `coverage.json` — HTML scraping is unreliable |
 | Modifying production source files without approval | Testability refactoring requires explicit `ask_user` approval and separate commit |
 | Skipping lessons learned update | Each step needs at least one learning added |
-| Declaring "roadmap complete" when coverage < 90% | Target is 90%, not "all planned steps done" |
-| Stopping iterations after planned steps finish | Must iterate until 90% reached, adding new steps as needed |
+| Declaring "roadmap complete" below the agreed target | The gate is line coverage vs. the agreed target, not "all planned steps done" |
+| Stopping iterations after planned steps finish | Must iterate until the agreed target is reached, adding new steps as needed |
 | Using placeholder values in completed DoD | The template uses `____` as prompts, but the presented DoD must contain real values |
 
 ---
@@ -104,7 +92,7 @@ Focus on coverage improvement only:
 - Identify all uncovered functions
 - Identify uncovered branches/paths in covered functions
 - **ONE FUNCTION PER STEP**
-- Target: 90% minimum
+- Target: the agreed line coverage target
 
 **Step ordering**: Start with easy wins (low complexity) to build momentum and catch integration issues early, then progress to higher complexity functions. Within the same complexity tier, prioritize by criticality (see Prioritization Guidelines below).
 
@@ -114,36 +102,50 @@ Focus on coverage improvement only:
 
 Follow the shared step execution cycle. One step at a time — after completing one step (including both checkpoints and retrospective), **STOP** and wait for human to indicate readiness.
 
-### Analyze (Step 2.1)
+### Analyze Coverage Gaps (Step 2.1a)
 
 Invoke `build-execution` to build and run unit tests for the component, then review coverage report for gaps.
 
-### Plan (Step 2.2)
-
-Document: functions to test, test scenarios (Given/When/Then), expected coverage gain.
-
-### Human Approval of Plan (Step 2.3 — BLOCKING CHECKPOINT)
-
-Present plan via `ask_user` for explicit approval before writing any test code.
-
-### Specification Consultation (Step 2.3.5 — before writing any test code)
+### Consult the Specification (Step 2.1b — before planning test scenarios)
 
 > **MANDATORY — NEVER SKIP**: Derive test cases from the specification, not only from the code paths.
 
-1. Read the relevant spec/requirement documents for the function under test (component `doc/index.md`, software/unit specification).
-2. Compare the spec against the current implementation: does the code do something the spec does not describe, or omit behaviour the spec requires?
-3. If a discrepancy is found: **STOP** — do not write the test yet. Ask the user whether the test should pin down the **specification** (test may fail = documents a potential defect) or the **current implementation**. Record the decision in the step documentation.
+1. Read the relevant spec/requirement documents for the function under test (component
+   `doc/index.md`, software/unit specification). Record the spec IDs you read. If no spec exists for
+   this function, record that too — it is a finding.
+2. Compare the spec against the current implementation: does the code do something the spec does not
+   describe, or omit behaviour the spec requires?
+3. If a discrepancy is found: record it and put both options into the plan (Step 2.2), with a
+   recommendation and the reasoning — **A)** the test verifies the CURRENT IMPLEMENTATION (test
+   passes, potential defect stays hidden), or **B)** the test verifies the SPECIFICATION (test
+   FAILS, documents a potential defect).
+4. Do **not** open a separate checkpoint for the A/B decision. The human decides it together with
+   the plan approval in Step 2.3. This satisfies the "stop and ask" rule of `c-unit-testing`.
 
 See the `c-unit-testing` skill section "Specification-First Test Design" for the full rule and conflict-handling template.
 
+### Plan (Step 2.2)
+
+Document: functions to test, the **test level** (unit / integration) with the reason for it, test
+scenarios (Given/When/Then) derived from the spec read in Step 2.1b, expected coverage gain, and —
+if Step 2.1b found a spec/implementation discrepancy — the A/B options with your recommendation.
+
+See the `c-unit-testing` skill section "Choosing the Test Level" for the decision rule.
+
+### Human Approval of Plan (Step 2.3 — BLOCKING CHECKPOINT)
+
+Present plan via `ask_user` for explicit approval before writing any test code. The test level is
+part of this approval. If the plan contains a spec/implementation discrepancy, the A/B decision is
+part of it too. Record both decisions in the step documentation.
+
 ### Write Tests (Step 2.4)
 
-Before writing ANY test code, first determine the test level, then invoke the matching skill:
+Invoke the skill that matches the test level approved in Step 2.3:
 
 - **Isolated component** (all dependencies mocked) → `c-unit-testing` skill
 - **Multiple real components compiled together** → `c-integration-testing` skill
 
-See the `c-unit-testing` skill section "Choosing the Test Level" for the decision rule.
+Changing the level while writing needs a new approval — go back to Step 2.2.
 
 ### Build & Test (Step 2.5)
 
@@ -153,9 +155,7 @@ Build and run all tests. All must pass before proceeding.
 
 Execute and show output BEFORE presenting the approval checkpoint:
 
-Use the coverage.json extraction method from the shared reference.
-
-**READ**: [Coverage Analysis](../shared/test-reports/coverage-analysis.md) — Use the "Extracting Coverage from coverage.json" section.
+**READ**: [Coverage Analysis](../shared/test-reports/coverage-analysis.md) — use the "Extracting Coverage from coverage.json" section for the extraction.
 
 Extract: line coverage %, function coverage %, branch coverage %, delta. **FORBIDDEN**: estimating coverage.
 
@@ -170,21 +170,21 @@ Extract: line coverage %, function coverage %, branch coverage %, delta. **FORBI
 ║                    STEP [N] DEFINITION OF DONE                               ║
 ║  Function: <function_name>  │  File: <source_file.c>                         ║
 ╠──────────────────────────────────┬──────┬────────────────────────────────────╣
-║ 2.1 Analyze function             │ [ ]  │ Signature, Lines, Complexity       ║
-║ 2.2 Plan tests                   │ [ ]  │ Test scenarios listed              ║
-║ 2.3 Human approved plan          │ [ ]  │ User said: ________________        ║
-║ 2.3.5 Spec consulted (Pass 1)    │ [ ]  │ Sections read + conflict decision  ║
+║ 2.1a Analyze function            │ [ ]  │ Signature, Lines, Complexity       ║
+║ 2.1b Spec consulted              │ [ ]  │ Spec IDs read + conflict A/B       ║
+║ 2.2 Plan tests                   │ [ ]  │ Test scenarios + test level        ║
+║ 2.3 Human approved plan          │ [ ]  │ User said: ____ (incl. level, A/B) ║
 ║ 2.4 Tests written                │ [ ]  │ File: ____, Tests added: ____      ║
 ║ 2.5 Build & tests pass           │ [ ]  │ Exit code: ____ Passed: ____/____  ║
-║ 2.6 Coverage measured (from HTML)│ [ ]  │ Before/After/Delta/Function/Branch ║
+║ 2.6 Coverage from coverage.json  │ [ ]  │ Before/After/Delta/Function/Branch ║
 ║ 2.7 Human approved results       │ [ ]  │ User said: ________________        ║
-║ 2.8a Retrospective written       │ [ ]  │ File + Test-Path: True             ║
+║ 2.8a Retrospective written       │ [ ]  │ File: ____ (existence verified)    ║
 ║      (NEVER SKIP)                │      │                                    ║
-║ 2.8b Lessons learned updated     │ [ ]  │ File + Test-Path: True             ║
+║ 2.8b Lessons learned updated     │ [ ]  │ File: ____ (existence verified)    ║
 ║      (NEVER SKIP)                │      │                                    ║
 ║ 2.9a Roadmap updated             │ [ ]  │ Step marked: COMPLETED             ║
 ║ 2.9b Committed & pushed          │ [ ]  │ Commit: (git log --oneline -1)     ║
-║ 2.10 Coverage vs Target          │ [ ]  │ Current/Target 90%/Gap/Action      ║
+║ 2.10 Coverage vs Target          │ [ ]  │ Line: current/target/gap/action    ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
 
@@ -195,18 +195,19 @@ Extract: line coverage %, function coverage %, branch coverage %, delta. **FORBI
 ## Iteration Enforcement Rule
 
 > After EVERY step completion, the agent MUST:
-> 1. Extract current total coverage from HTML report
-> 2. Compare against 90% target
-> 3. If coverage < 90%: analyze remaining uncovered code, plan additional steps, present gap
-> 4. If all roadmap steps done BUT coverage < 90%: ADD NEW STEPS and continue
+> 1. Extract line, function and branch coverage from `coverage.json`
+> 2. Compare line coverage against the agreed target (roadmap frontmatter)
+> 3. If line coverage < target: analyze remaining uncovered code, plan additional steps, present gap
+> 4. If all roadmap steps done BUT line coverage < target: ADD NEW STEPS and continue
+> 5. If branch coverage dropped below the baseline: report it and propose a step to recover it
 >
-> **Definition of "Complete"**: Coverage ≥ 90%, NOT "all planned steps done"
+> **Definition of "Complete"**: line coverage ≥ agreed target, NOT "all planned steps done"
 
 ---
 
 ## Phase 3: Completion
 
-When coverage ≥ 90% is confirmed from coverage.json:
+When line coverage ≥ the agreed target is confirmed from coverage.json:
 
 1. **Final verification** — Re-extract coverage using the shared [Coverage Analysis](../shared/test-reports/coverage-analysis.md) to independently confirm
 2. **Final metrics** — Document in roadmap: baseline vs final coverage (line, branch, function)

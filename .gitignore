@@ -16,9 +16,10 @@ coverage.xml
 htmlcov/
 junit.xml
 
-# Temporary development files
-REVIEW.md
-ROADMAP.md
+# Temporary planning docs
+/ROADMAP*.md
+/REVIEW*.md
+/BACKLOG*.md
 
 # MSYS2 / Git Bash crash dumps
-*.stackdump
+/*.stackdump

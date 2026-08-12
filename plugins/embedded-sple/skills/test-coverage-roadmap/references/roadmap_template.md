@@ -8,16 +8,18 @@ total_steps: <N>
 
 baseline_metrics:
   test_coverage_percent: <NN>
+  branch_coverage_percent: <NN>
   total_functions: <N>
   covered_functions: <N>
   total_branches: <N>
   covered_branches: <N>
 
 target_metrics:
-  test_coverage_percent: 90
+  test_coverage_percent: <TARGET>
 
 current_metrics:
   test_coverage_percent: <NN>
+  branch_coverage_percent: <NN>
   total_functions: <N>
   covered_functions: <N>
 ---
@@ -31,13 +33,13 @@ current_metrics:
 | Component          | `<COMPONENT_PATH>`             |
 | Start Date         | <YYYY-MM-DD>                   |
 | Current Status     | Step <N> of <M>                |
-| Baseline Coverage  | <NN>%                          |
-| Target Coverage    | 90%                            |
-| Current Coverage   | <NN>%                          |
+| Baseline Line Coverage | <NN>%                      |
+| Target Line Coverage   | <TARGET>%                  |
+| Current Line Coverage  | <NN>%                      |
 
 ## Goal
 
-Achieve 90%+ unit test coverage for this component through incremental test additions.
+Achieve `<TARGET>`%+ line coverage for this component through incremental test additions.
 
 ## Scope
 
@@ -45,8 +47,8 @@ Achieve 90%+ unit test coverage for this component through incremental test addi
 
 | File | Current Coverage | Target | Priority |
 |------|------------------|--------|----------|
-| `<file1.c>` | <NN>% | 90% | High |
-| `<file2.c>` | <NN>% | 90% | Medium |
+| `<file1.c>` | <NN>% | <TARGET>% | High |
+| `<file2.c>` | <NN>% | <TARGET>% | Medium |
 
 ### Out of Scope
 
@@ -122,9 +124,9 @@ Achieve 90%+ unit test coverage for this component through incremental test addi
 | Complexity | Low/Medium/High |
 | Started | - |
 | Completed | - |
-| Coverage Before | <NN>% |
-| Coverage After | <NN>% |
-| Coverage Gain | +<N>% |
+| Line Coverage Before | <NN>% |
+| Line Coverage After | <NN>% |
+| Line Coverage Gain | +<N>% |
 
 #### Description
 
@@ -142,7 +144,7 @@ Achieve 90%+ unit test coverage for this component through incremental test addi
 
 - [ ] All planned tests written
 - [ ] All tests pass
-- [ ] Coverage gain achieved
+- [ ] Coverage gain recorded (estimate vs. actual)
 - [ ] Human review approved
 - [ ] Retrospective completed
 - [ ] Changes committed
@@ -166,9 +168,9 @@ Achieve 90%+ unit test coverage for this component through incremental test addi
 | Complexity | Low/Medium/High |
 | Started | - |
 | Completed | - |
-| Coverage Before | <NN>% |
-| Coverage After | <NN>% |
-| Coverage Gain | +<N>% |
+| Line Coverage Before | <NN>% |
+| Line Coverage After | <NN>% |
+| Line Coverage Gain | +<N>% |
 
 ...
 
@@ -186,7 +188,7 @@ Achieve 90%+ unit test coverage for this component through incremental test addi
 ## Completion Checklist
 
 - [ ] All steps completed
-- [ ] Coverage >= 90% verified
+- [ ] Line coverage >= `<TARGET>`% verified
 - [ ] All tests pass
 - [ ] Lessons learned documented
 - [ ] Roadmap archived as completed
@@ -195,7 +197,9 @@ Achieve 90%+ unit test coverage for this component through incremental test addi
 
 | Metric | Baseline | Final | Delta |
 |--------|----------|-------|-------|
-| Coverage (%) | <NN> | <NN> | +<N> |
+| Line coverage (%) | <NN> | <NN> | +<N> |
+| Branch coverage (%) | <NN> | <NN> | +<N> |
+| Function coverage (%) | <NN> | <NN> | +<N> |
 | Test Cases | <N> | <N> | +<N> |
 | Test Files | <N> | <N> | +<N> |
 

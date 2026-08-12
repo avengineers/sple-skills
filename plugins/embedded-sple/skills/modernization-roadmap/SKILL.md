@@ -1,6 +1,6 @@
 ---
 name: modernization-roadmap
-description: Use this skill when refactoring, modernizing, or decomposing legacy C components. Guides incremental code improvements with human-in-the-loop checkpoints, test safety nets, and file-based state tracking. Starts with a comprehensive review (static analysis, coverage, HIS metrics) then creates a step-by-step roadmap. Trigger on any mention of modernizing embedded code, reducing technical debt in C modules, refactoring tightly-coupled components, or creating a refactoring plan — even if the user just says "clean up this legacy mess".
+description: Use this skill when refactoring, modernizing, or decomposing legacy C components. Guides incremental code improvements with human-in-the-loop checkpoints, test safety nets, and file-based state tracking. Starts with a comprehensive review (static analysis, coverage, HIS metrics) then creates a step-by-step roadmap. Trigger on any mention of modernizing embedded code, reducing technical debt in C modules, refactoring tightly-coupled components, creating a refactoring plan, or resuming an existing modernization roadmap — even if the user just says "clean up this legacy mess".
 compatibility: "Requires PowerShell 5.1+ and Python 3.8+. Depends on sibling skills - build-execution, c-unit-testing, c-code-review-comprehensive, retrospective, conventional-commits, project-knowledge-base."
 ---
 
@@ -17,23 +17,7 @@ This skill uses the shared incremental roadmap framework.
 
 All common workflow rules (forbidden behaviors, retrospective requirements) from the shared engine apply here. The sections below define **modernization-specific** behavior.
 
-> **CRITICAL CONSTRAINT**: Follow this skill EXACTLY as written. Do NOT:
-> - Batch multiple steps together for "efficiency"
-> - Skip or combine checkpoints
-> - Proceed past a BLOCKING CHECKPOINT without explicit human approval
-> - Automatically continue to the next step after completing one
-> - Modify or remove existing template/document elements unless explicitly requested
->
-> The incremental, human-in-the-loop design is **intentional**.
-
 ---
-
-## When to Use This Skill
-
-- Modernizing monolithic C components
-- Decomposing tightly coupled code
-- Improving maintainability and testability
-- Reducing technical debt incrementally
 
 ## First Contact
 
@@ -177,7 +161,7 @@ Present via `ask_user`:
 
 ### Step 2.8: Retrospective & Lessons (MANDATORY)
 
-Invoke `retrospective` skill. Save file, verify with `Test-Path`. Update lessons learned file.
+Invoke `retrospective` skill. Save the file, then verify that the file exists. Update lessons learned file.
 
 ### Step 2.9: Document & Commit
 
@@ -208,7 +192,7 @@ Evaluate whether modernization goals are met. If more steps remain, report progr
 ║                                  │      │ Within 10% limit: Yes/No           ║
 ║ 2.7 Human approved results       │ [ ]  │ User said: ________________        ║
 ║ 2.8a Retrospective written       │ [ ]  │ File: ________________________     ║
-║      (NEVER SKIP)                │      │ Test-Path result: True/False       ║
+║      (NEVER SKIP)                │      │ Existence check: True/False        ║
 ║ 2.8b Lessons learned updated     │ [ ]  │ Entry added: Yes/No                ║
 ║      (NEVER SKIP)                │      │                                    ║
 ║ 2.9a Roadmap updated             │ [ ]  │ Step marked: COMPLETED             ║
