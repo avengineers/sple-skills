@@ -62,6 +62,7 @@ These rules apply to every roadmap-based skill. Each skill may add additional do
 | Skipping retrospective | Each step needs learnings captured | No retrospective file created |
 | Asking "next step?" without retrospective file | Retrospective must exist on disk before proceeding | No retrospective file created |
 | Not updating roadmap after step | Progress must be tracked | Roadmap not updated with metrics |
+| Removing or rewriting existing template or document elements without being asked | The roadmap document carries the state across sessions — silent edits destroy content the user agreed to | Sections the user wrote are gone or reworded |
 | Committing with incomplete DoD | Required artifacts must exist before commit | DoD items missing evidence |
 | Proceeding without presenting completed DoD | All checkboxes must be filled with evidence | No DoD table shown |
 
@@ -198,7 +199,7 @@ Retrospective content:
 
 ### Check Target (Step 2.10)
 
-Domain-specific evaluation of progress against the overall goal. The consuming skill defines what "done" means (e.g., coverage ≥ 95%, all modernization steps complete). If the target is not met, the agent identifies what remains and plans additional steps.
+Domain-specific evaluation of progress against the overall goal. The consuming skill defines what "done" means (e.g., the agreed coverage target reached, all modernization steps complete). If the target is not met, the agent identifies what remains and plans additional steps.
 
 ---
 
@@ -213,7 +214,7 @@ Every roadmap skill must present a completed DoD checklist before transitioning 
 | 2.5 | Build & tests pass | Exit code + test results |
 | 2.6 | Metrics measured | Domain-specific measurement evidence |
 | 2.7 | Human approved results | User approval captured |
-| 2.8 | Retrospective written (NEVER SKIP) | File path + `Test-Path: True` |
+| 2.8 | Retrospective written (NEVER SKIP) | File path + existence check output |
 | 2.8 | Lessons learned updated | Entry added confirmation |
 | 2.9 | Roadmap step updated | Step marked COMPLETED |
 | 2.9 | Committed & pushed | `git log --oneline -1` output |

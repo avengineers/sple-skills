@@ -17,11 +17,12 @@ Use this template when adding or detailing a step in the coverage roadmap.
 | File | `<file.c>` |
 | Line | <line_number> |
 | Complexity | Low/Medium/High |
+| Test level | Unit / Integration — reason: `<why>` (planned in Step 2.2) |
 | Started | - |
 | Completed | - |
-| Coverage Before | <NN>% |
-| Coverage After | - |
-| Coverage Gain | - |
+| Line Coverage Before | <NN>% |
+| Line Coverage After | - |
+| Line Coverage Gain | - |
 | Approved by | - |
 
 #### Objective
@@ -37,13 +38,24 @@ Add unit tests for `<function_name>` to increase coverage by approximately <N>%.
 | Line Coverage | <NN>% |
 | Branch Coverage | <NN>% |
 
+#### Specification (Step 2.1b — filled before the test scenarios)
+
+| Attribute | Value |
+|-----------|-------|
+| Spec documents read | `<path>` (component `doc/index.md`, unit spec) |
+| Spec IDs read | `<SWDD-ID>, <SWDD-ID>` |
+| Spec exists for this function | Yes / No — "No" is a finding, record it |
+| Spec vs. implementation discrepancy | None / `<what differs>` |
+| A/B decision | - (A = test pins the implementation, B = test pins the spec) |
+| Decided by | - (human, together with the plan approval in Step 2.3) |
+
 #### Test Scenarios
 
-| ID | Scenario | Given | When | Then |
-|----|----------|-------|------|------|
-| T1 | Happy path | Valid input | Function called | Expected output |
-| T2 | Null pointer | NULL parameter | Function called | Returns error |
-| T3 | Boundary | Max value input | Function called | Handles correctly |
+| ID | Scenario | Req (SWDD ID) | Given | When | Then |
+|----|----------|---------------|-------|------|------|
+| T1 | Happy path | `<SWDD-ID>` | Valid input | Function called | Expected output |
+| T2 | Null pointer | `<SWDD-ID>` | NULL parameter | Function called | Returns error |
+| T3 | Boundary | `<SWDD-ID>` | Max value input | Function called | Handles correctly |
 
 #### Test File Structure
 
@@ -62,9 +74,10 @@ components/<path>/test/
 
 **Mandatory**:
 
+- [ ] Test level approved by the human together with the plan (Step 2.3)
 - [ ] All planned test scenarios implemented
 - [ ] All tests pass
-- [ ] Expected coverage gain achieved (+/- 2%)
+- [ ] Coverage gain recorded (estimate vs. actual)
 - [ ] Human review approved
 
 **Quality**:
@@ -87,9 +100,9 @@ Update the step entry with:
 |-------|-------|
 | Started | YYYY-MM-DD HH:MM |
 | Completed | YYYY-MM-DD HH:MM |
-| Coverage Before | <NN>% |
-| Coverage After | <NN>% |
-| Coverage Gain | +<N>% |
+| Line Coverage Before | <NN>% |
+| Line Coverage After | <NN>% |
+| Line Coverage Gain | +<N>% |
 | Approved by | <Name> |
 
 #### Tests Added
@@ -118,7 +131,7 @@ Update the step entry with:
 
 Before writing tests, verify:
 
-- [ ] `c-unit-testing` skill invoked for guidance
+- [ ] Skill for the approved test level invoked (`c-unit-testing` or `c-integration-testing`)
 - [ ] Hammock dependencies identified
 - [ ] Test file naming follows convention
 - [ ] BDD style understood (Given/When/Then)

@@ -82,9 +82,39 @@ EXPECT_CALL(hal_mock, HAL_GPIO_Read(PIN)).WillOnce(Return(HIGH));
 
 For external dependencies (network, filesystem), mock selectively alongside HAL.
 
+## Specification-First Test Design
+
+> Integration test cases are derived from the **specification**, not only from the code paths —
+> especially for rejection conditions, queue behavior, and state transitions across components.
+
+**Before writing tests**, read the relevant system-level requirements for the interaction under
+test. The code may already implement a superset, a subset, or a different variant of the
+requirement — surface that comparison in the step plan.
+
+**When the code contradicts the specification**, do not silently make the test follow the code.
+Stop and ask the user whether the test should pin down the specification (test may fail =
+documents a potential defect) or the current implementation, and record the decision.
+
+The rule and conflict-handling template are identical to unit testing — see the `c-unit-testing`
+skill section "Specification-First Test Design".
+
 ## Traceability
 
-Integration tests trace to **System Requirements Specification (SRS)**, not SWDD:
+Integration tests trace to **System Requirements Specification (SRS)** system-level requirements,
+not to component-level SWDD IDs.
+
+### Test ID Naming
+
+| Test level | ID format | Example |
+|---|---|---|
+| Unit test | `TS_<COMP>-NNN` | `TS_LC-001` |
+| Integration test | `IT_<SUBSYS>-NNN` | `IT_LIGHT-001` |
+
+**Never mix these prefixes.** An integration test that uses a `TS_` ID is misclassified and the
+traceability tooling assigns it to the wrong test level — check the prefix before committing.
+**Only use IDs that exist** in the actual spec files; never invent IDs.
+
+### RST Block Format
 
 ```cpp
 /*!
@@ -92,9 +122,25 @@ Integration tests trace to **System Requirements Specification (SRS)**, not SWDD
  * .. test:: SubsystemIntegration.DataFlowScenario
  *    :id: IT_SUBSYS-001
  *    :tests: SRS_SUBSYS-100
+ *
+ * GIVEN  the starting state of the subsystem.
+ * WHEN   the stimulus is applied.
+ * THEN   the expected cross-component outcome occurs.
  * @endrst
  */
 ```
+
+- **`:id:`**: the integration test ID (`IT_<SUBSYS>-NNN`).
+- **`:tests:`**: the system requirement(s) it validates — real IDs only.
+- **GIVEN / WHEN / THEN**: always present, phrased in terms of observable system behavior, not internal implementation details.
+
+## No Magic Numbers
+
+The same no-magic-numbers rule as unit testing applies: never write raw numeric literals for
+state values, result codes, or thresholds — reference the project-defined `#define`/`enum`
+constant, in code *and* in comments. Define test-local aliases for frequently used constants at
+the top of the file. See the `c-unit-testing` skill section "No Magic Numbers" for details and the
+accepted exceptions.
 
 ## Variant-Based Testing
 
@@ -107,6 +153,12 @@ Tests must handle multiple product variants with different component combination
 | Base | `light_controller`, `power_button` | minimal |
 
 Use `#ifdef CONFIG_*` guards for variant-conditional tests. See [references/variant-testing.md](references/variant-testing.md) for full strategies.
+
+**Every integration test file must compile and run at least one meaningful test case on ALL supported variants — not only the one currently selected in CMake.**
+
+- Wrap variant-specific cases in `#ifdef CONFIG_*` guards, and provide a fallback (a stub case or a clear `// Not applicable on this variant` comment) so the binary is never empty on other variants.
+- Label `#else` branches by their *convention*, not by a specific variant name (e.g. `#else /* variants without blinking */`).
+- **Mental compilation check** before committing: "If `CONFIG_BLINKING` is not defined, does this file still compile and run at least one case?"
 
 ## Test Organization
 
@@ -134,6 +186,56 @@ gtest_discover_tests(integration_subsystem_test
     TEST_PREFIX "Integration."
 )
 ```
+
+## Build-Time Interface-Wiring Verification
+
+> **Applies only when a code generator sits between components** — e.g. a generated RTE/dispatch
+> layer, IPC stubs, or a generated routing table that maps a caller's interface to a concrete
+> callee function. If components call each other directly (as with the hand-written SPLED `rte`),
+> **skip this** — a normal compile/link already fails on a missing or wrong symbol, so the technique
+> adds no value.
+
+When a generator maps an interface to a function, a mis-wiring (an interface silently pointing at
+the wrong or a non-existent function) is invisible to unit tests — they mock the interface — and
+can slip past integration tests whose assertions happen to still pass. Turn such a mis-wiring into
+a **build/link-time error** with a thin verification translation unit:
+
+1. Add one small C translation unit per caller that includes the **real generated interface
+   header** and calls through it to the generated dispatch.
+2. Expose a plain-C wrapper the test binary links against.
+3. If the generator remapped the interface to a different or missing function, the symbol does not
+   resolve and the **linker fails at build time** — before anything reaches the target.
+
+```cmake
+add_executable(integration_subsystem_test
+    ${COMPONENT_SOURCES}
+    test/integration_subsystem_test.cpp
+    test/wiring_check_component_a.c   # includes the generated interface header for component A
+)
+```
+
+**What it does NOT cover:** the runtime behavior of a wrong mapping. If two functions share a
+signature but differ in behavior, only the integration-test assertions catch it — not the link
+check.
+
+## SetUp / ResetAll Discipline
+
+Because integration tests run real components with real state, leftover state from one test can
+leak into the next. Every fixture must fully reset the state of all components involved in
+`SetUp()`:
+
+```cpp
+void SetUp() override
+{
+    Subsystem_ResetAll();   // full reset of every component in the subsystem — never partial
+    // component-specific defaults go here
+}
+```
+
+- Never rely on test execution order for state setup.
+- Never reset only "the fields this test touches" — reset everything. A partial reset (e.g. resetting one component's state but not another's) causes subtle cross-test leakage.
+- When a new test touches state a shared reset helper does not yet cover, extend that helper rather than resetting inline.
+- If `SetUp()` calls real production init functions, check they do not leave unexpected mock-call side effects.
 
 ## Best Practices
 
@@ -169,6 +271,10 @@ After running integration tests, analyze coverage to verify that component inter
 
 > **COMMIT REQUIREMENT**: When committing new integration tests, invoke the `conventional-commits` skill
 > to ensure proper commit message formatting (use `test:` type for test-only changes).
+> Before committing, verify:
+> - All `:tests:` references are real spec IDs (not invented)
+> - All test IDs use the `IT_` prefix, not `TS_`
+> - Every test file compiles and runs at least one case under all supported variants
 
 > **PROJECT MEMORY**: When discovering integration issues or defining subsystem contracts,
 > use the `project-knowledge-base` skill to document them:
