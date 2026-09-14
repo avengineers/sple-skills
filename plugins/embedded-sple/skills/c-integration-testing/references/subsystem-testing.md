@@ -491,17 +491,17 @@ TEST_F(MultiSubsystemTest, CoordinatesClosedLoop)
 test/
 ├── integration/
 │   ├── subsystem_lighting/
-│   │   ├── test_lighting_nominal.cc
-│   │   ├── test_lighting_faults.cc
-│   │   ├── test_lighting_performance.cc
+│   │   ├── test_lighting_nominal_integration.cc
+│   │   ├── test_lighting_faults_integration.cc
+│   │   ├── test_lighting_performance_integration.cc
 │   │   └── CMakeLists.txt
 │   ├── subsystem_communication/
-│   │   ├── test_comm_nominal.cc
-│   │   ├── test_comm_errors.cc
-│   │   ├── test_comm_stress.cc
+│   │   ├── test_comm_nominal_integration.cc
+│   │   ├── test_comm_errors_integration.cc
+│   │   ├── test_comm_stress_integration.cc
 │   │   └── CMakeLists.txt
 │   └── system/
-│       ├── test_multi_subsystem.cc
+│       ├── test_multi_subsystem_integration.cc
 │       └── CMakeLists.txt
 ```
 
@@ -512,9 +512,9 @@ test/
 
 # Subsystem integration test executable
 add_executable(integration_lighting_subsystem
-    test_lighting_nominal.cc
-    test_lighting_faults.cc
-    test_lighting_performance.cc
+    test_lighting_nominal_integration.cc
+    test_lighting_faults_integration.cc
+    test_lighting_performance_integration.cc
 )
 
 # Link all subsystem components (REAL implementations)

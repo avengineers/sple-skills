@@ -235,14 +235,14 @@ TEST_F(ErrorRecoveryIntegrationTest, ComponentFailureRecovery)
 
 ```cmake
 # Integration test executable
-add_executable(integration_subsystem_test
-    src/integration_subsystem_test.cpp
+add_executable(test_subsystem_integration
+    src/test_subsystem_integration.cc
     ${COMPONENT_A_SOURCES}
     ${COMPONENT_B_SOURCES}
     ${COMPONENT_C_SOURCES}
 )
 
-target_link_libraries(integration_subsystem_test
+target_link_libraries(test_subsystem_integration
     PRIVATE
         gtest_main
         gmock
@@ -252,7 +252,7 @@ target_link_libraries(integration_subsystem_test
         mockup_hal
 )
 
-target_include_directories(integration_subsystem_test
+target_include_directories(test_subsystem_integration
     PRIVATE
         ${CMAKE_SOURCE_DIR}/src/components/component_a
         ${CMAKE_SOURCE_DIR}/src/components/component_b
@@ -261,7 +261,7 @@ target_include_directories(integration_subsystem_test
 )
 
 # Register with CTest
-gtest_discover_tests(integration_subsystem_test
+gtest_discover_tests(test_subsystem_integration
     TEST_PREFIX "Integration."
     PROPERTIES LABELS "integration"
 )

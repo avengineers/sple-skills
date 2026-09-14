@@ -259,6 +259,37 @@ protected:
 };
 ```
 
+### Pattern 5: Feature-Guarded Cases Inside `Values(...)`
+
+When a feature flag adds extra branches to the function under test, keep the extra cases in the
+**same** `INSTANTIATE_TEST_SUITE_P` but wrap them in `#if`. Put the `,` separator **before** the
+`#if` block so the always-present case stays comma-free and the `Values(...)` list is valid whether
+the flag is 0 or 1:
+
+```cpp
+INSTANTIATE_TEST_SUITE_P(Suite, Fixture, Values(
+    Param{"always present case", ...}    // no trailing comma
+
+#ifdef CONFIG_AUTO_OFF
+    ,
+    Param{"feature-specific case", ...}
+#endif
+));
+```
+
+> **Cross-variant compile rule**: Every `INSTANTIATE_TEST_SUITE_P` and every conditionally compiled
+> `TEST_P`/`TEST_F` must compile and behave correctly on **all** supported variants — not only the
+> currently active one. Before committing, mentally compile with the flag both set and cleared:
+> "Does this still compile and pass when `CONFIG_AUTO_OFF` is not defined?"
+
+### Separate Fixtures for Orthogonal Code Paths
+
+When a function has two logically distinct paths that need different setup (e.g. the main data path
+vs. a cleanup/reset path), use **two separate fixtures and two `INSTANTIATE_TEST_SUITE_P` blocks**
+rather than one large suite with `if (param.special_case)` branches inside the test body. Each test
+body stays flat, and the parameter sets document the two behaviors independently. A branch on the
+parameter inside the body is a signal the cases do not actually share one structure — split them.
+
 ---
 
 ## Traceability Notes

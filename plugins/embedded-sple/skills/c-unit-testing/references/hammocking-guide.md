@@ -758,6 +758,93 @@ Expected: SetValue(42)
 2. Use wildcard `_` if exact value doesn't matter
 3. Use range matcher `Gt(40)` if approximate match acceptable
 
+## GMock Gotchas
+
+These are subtle traps that produce confusing compile errors or false test failures. They are
+generic to GMock but bite often in embedded C projects that wrap dependencies in function-like
+macros and rely on output-parameter return conventions.
+
+### Function-Like Macros Inside EXPECT_CALL
+
+If a dependency is invoked through a **function-like macro** (common with generated RTE/service
+call wrappers, e.g. `Xxx_Call_Service(...)`), you cannot put that macro inside `EXPECT_CALL`.
+GMock builds an internal `gmock_`-prefixed token from the method name; the preprocessor then tries
+to paste `gmock_` onto the macro's `(`, producing an invalid token and a compile error.
+
+```cpp
+// WRONG — Foo_Call_Service is a function-like macro; token-pasting breaks EXPECT_CALL
+EXPECT_CALL(mymock, Foo_Call_Service(_, _)).Times(1);   // compile error
+
+// CORRECT — use the bare mock function name from the MOCK_METHOD declaration
+EXPECT_CALL(mymock, ServiceImpl(_, _)).Times(1);
+```
+
+**Rule:** Inside `EXPECT_CALL`, always use the plain function name that appears in `MOCK_METHOD` —
+never a macro alias that expands to it.
+
+### Output-Parameter Mocks Need SetArgPointee on Success Paths
+
+When a mocked function returns its result through an **output pointer** (not a return value), the
+default action for a `void` mock does **not** initialize the pointed-to value. It keeps whatever
+the caller-allocated variable held — often uninitialized stack garbage. If the code under test then
+branches on that value, it takes an unintended path instead of the one you meant to exercise.
+
+```cpp
+// WRONG — mock leaves *off_course uninitialised; the code under test branches on garbage
+EXPECT_CALL(mymock, RteGetOffCourse(_)).Times(1);
+
+// CORRECT — mock writes the intended value into the output argument (0-based index)
+EXPECT_CALL(mymock, RteGetOffCourse(_))
+    .WillOnce(SetArgPointee<0>(TRUE));   // arg 0 = bool_t *off_course
+```
+
+**Discovery method:** If a test lands on the wrong branch, trace back to the caller that read a
+value from a mocked output parameter, and add `SetArgPointee<N>(value)` (or `DoAll(SetArgPointee<N>(value), Return(...))`
+for non-void mocks) to that mock.
+
+### AnyNumber() vs AtLeast(1) for Transitive Mocks
+
+When the function under test triggers a *real* (unmocked) helper that only **indirectly** reaches
+a mock, whether that mock is called depends on every intermediate guard in the chain. If any guard
+short-circuits (e.g. "no active job — nothing to report"), the mock is never reached even though
+the top-level trigger fired.
+
+```cpp
+// CORRECT — transitive mock may or may not be reached; assert only that it is NOT called on the negative path
+if (param.expectTrigger) {
+    EXPECT_CALL(mymock, DownstreamEffect(_)).Times(AnyNumber());
+} else {
+    EXPECT_CALL(mymock, DownstreamEffect(_)).Times(0);
+}
+
+// WRONG — AtLeast(1) fails whenever an intermediate guard short-circuits the chain
+EXPECT_CALL(mymock, DownstreamEffect(_)).Times(AtLeast(1));
+```
+
+To positively assert a transitive call with `AtLeast(1)`, set up **all** intermediate state
+required to activate the full chain, in a test case dedicated to that deep path.
+
+### Suppressing Transitive Calls from Pass-Through Wrappers
+
+Some call wrappers expand to **direct calls into other production functions of the same component**
+rather than to a mock. When the function under test uses one, the real production function runs and
+may call mocks your test does not care about — producing `GMOCK WARNING: Uninteresting mock
+function call`. Suppress those with `Times(AnyNumber())`, guarded by the same feature flag that
+conditionally compiles the callee:
+
+```cpp
+EXPECT_CALL(mymock, TraceUpdateSignal(_, _)).Times(AnyNumber());  // always-present trace hook
+
+#ifdef CONFIG_AUTO_OFF
+    // reached transitively via the pass-through wrapper, not by the code under test directly
+    EXPECT_CALL(mymock, FeatureSideEffect(_, _)).Times(AnyNumber());
+#endif
+```
+
+To tell pass-through wrappers from real stubs, inspect the generated call-wrapper header: a
+pass-through expands to a real function call (`#define Xxx_Call_Handler(a,b) (Handler(a,b), OK)`),
+a stub expands to the mocked function.
+
 ## Best Practices
 
 ### 1. Mock at Interface Boundaries

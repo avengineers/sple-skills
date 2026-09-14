@@ -7,19 +7,22 @@ current_step: 0
 total_steps: <N>
 
 baseline_metrics:
-  test_coverage_percent: <NN>
+  line_coverage_percent: <NN>
+  branch_coverage_percent: <NN>
   total_functions: <N>
   covered_functions: <N>
   total_branches: <N>
   covered_branches: <N>
 
 target_metrics:
-  test_coverage_percent: 90
+  line_coverage_percent: <TARGET>
 
 current_metrics:
-  test_coverage_percent: <NN>
+  line_coverage_percent: <NN>
+  branch_coverage_percent: <NN>
   total_functions: <N>
   covered_functions: <N>
+  not_testable_lines: <N>
 ---
 
 # Test Coverage Roadmap: <Component Name>
@@ -31,13 +34,13 @@ current_metrics:
 | Component          | `<COMPONENT_PATH>`             |
 | Start Date         | <YYYY-MM-DD>                   |
 | Current Status     | Step <N> of <M>                |
-| Baseline Coverage  | <NN>%                          |
-| Target Coverage    | 90%                            |
-| Current Coverage   | <NN>%                          |
+| Baseline Line Coverage | <NN>%                      |
+| Target Line Coverage   | <TARGET>%                  |
+| Current Line Coverage  | <NN>%                      |
 
 ## Goal
 
-Achieve 90%+ unit test coverage for this component through incremental test additions.
+Achieve `<TARGET>`%+ line coverage for this component through incremental test additions.
 
 ## Scope
 
@@ -45,8 +48,8 @@ Achieve 90%+ unit test coverage for this component through incremental test addi
 
 | File | Current Coverage | Target | Priority |
 |------|------------------|--------|----------|
-| `<file1.c>` | <NN>% | 90% | High |
-| `<file2.c>` | <NN>% | 90% | Medium |
+| `<file1.c>` | <NN>% | <TARGET>% | High |
+| `<file2.c>` | <NN>% | <TARGET>% | Medium |
 
 ### Out of Scope
 
@@ -105,9 +108,18 @@ Achieve 90%+ unit test coverage for this component through incremental test addi
 
 #### Definition of Done
 
+<!-- dod:exception -->
+
+Step 0 sets up infrastructure and tests no function, so the rows about a function under test do
+not apply: 2.1b (no spec to consult), 2.6 (no coverage delta to measure). Everything else holds,
+including the never-skippable 2.8a (retrospective) and 2.8b (lessons learned).
+
 - [ ] Test infrastructure created
 - [ ] Build compiles successfully
-- [ ] Human review approved
+- [ ] Human review approved (2.7)
+- [ ] Retrospective written — 2.8a, never skippable
+- [ ] Lessons learned updated — 2.8b, never skippable
+- [ ] Roadmap updated and committed (2.9a, 2.9b)
 
 ---
 
@@ -122,9 +134,9 @@ Achieve 90%+ unit test coverage for this component through incremental test addi
 | Complexity | Low/Medium/High |
 | Started | - |
 | Completed | - |
-| Coverage Before | <NN>% |
-| Coverage After | <NN>% |
-| Coverage Gain | +<N>% |
+| Line Coverage Before | <NN>% |
+| Line Coverage After | <NN>% |
+| Line Coverage Gain | +<N>% |
 
 #### Description
 
@@ -140,18 +152,17 @@ Achieve 90%+ unit test coverage for this component through incremental test addi
 
 #### Definition of Done
 
-- [ ] All planned tests written
-- [ ] All tests pass
-- [ ] Coverage gain achieved
-- [ ] Human review approved
-- [ ] Retrospective completed
-- [ ] Changes committed
+<!-- dod:delegated -->
+
+The DoD is the checklist in the skill — `SKILL.md` → *Step Definition of Done (DoD) Checklist*.
+Do not restate it here; paste the completed box with real evidence instead. A second list drifts
+from the first, and the copy that has lost a mandatory row is the one somebody works from.
 
 #### Tests Added
 
 | Test File | Test Case | Status |
 |-----------|-----------|--------|
-| `<component>_test.cpp` | `<TestName>` | Pass |
+| `test_<Component>_<Function>.cc` | `<TestName>` | Pass |
 
 ---
 
@@ -166,13 +177,31 @@ Achieve 90%+ unit test coverage for this component through incremental test addi
 | Complexity | Low/Medium/High |
 | Started | - |
 | Completed | - |
-| Coverage Before | <NN>% |
-| Coverage After | <NN>% |
-| Coverage Gain | +<N>% |
+| Line Coverage Before | <NN>% |
+| Line Coverage After | <NN>% |
+| Line Coverage Gain | +<N>% |
 
 ...
 
 ---
+
+## Untestable Code
+
+Lines no test can reach. The reported coverage is **not** adjusted for them — this register
+explains the remaining gap instead. Only two reasons are allowed, and each needs its evidence.
+See the skill section *Untestable Code (NOT_TESTABLE Register)*.
+
+| Location | Lines | Reason | Evidence | Approved |
+|----------|-------|--------|----------|----------|
+| `<file.c>:<NN>` (`default:` case) | <N> | `DEFENSIVE_BY_DESIGN` | defensive-programming-checklist: enum values validated | <YYYY-MM-DD> |
+| `<file.c>:<NN>-<NN>` | <N> | `UNREACHABLE_DEFECT` | UNR `<finding-id>` — removal recommended, handed to `modernization-roadmap` | <YYYY-MM-DD> |
+
+| Field | Value |
+|-------|-------|
+| Lines in register | <N> |
+| Gap to target | <N.N>% |
+| Of that explained by the register | <N.N>% |
+| Testable remainder | <N.N>% |
 
 ## Progress Tracking
 
@@ -186,7 +215,8 @@ Achieve 90%+ unit test coverage for this component through incremental test addi
 ## Completion Checklist
 
 - [ ] All steps completed
-- [ ] Coverage >= 90% verified
+- [ ] Line coverage >= `<TARGET>`% verified, or the gap fully explained by the register
+- [ ] NOT_TESTABLE register confirmed — every entry has a reason and its evidence
 - [ ] All tests pass
 - [ ] Lessons learned documented
 - [ ] Roadmap archived as completed
@@ -195,9 +225,12 @@ Achieve 90%+ unit test coverage for this component through incremental test addi
 
 | Metric | Baseline | Final | Delta |
 |--------|----------|-------|-------|
-| Coverage (%) | <NN> | <NN> | +<N> |
+| Line coverage (%) | <NN> | <NN> | +<N> |
+| Branch coverage (%) | <NN> | <NN> | +<N> |
+| Function coverage (%) | <NN> | <NN> | +<N> |
 | Test Cases | <N> | <N> | +<N> |
 | Test Files | <N> | <N> | +<N> |
+| Lines in NOT_TESTABLE register | <N> | <N> | +<N> |
 
 ---
 

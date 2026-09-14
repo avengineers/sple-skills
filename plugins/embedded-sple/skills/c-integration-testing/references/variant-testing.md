@@ -125,7 +125,7 @@ TEST_F(DiscoIntegrationTest, BlinkingLightPattern)
 
 Separate test files for each variant:
 
-**File: `test/Disco/disco_integration_test.cpp`**
+**File: `test/Disco/test_disco_integration.cc`**
 
 ```cpp
 // Tests specific to Disco variant only

@@ -9,7 +9,7 @@ total_steps: <N>
 baseline_metrics:
   ram_bytes: <NNNN>
   rom_bytes: <NNNN>
-  test_coverage_percent: <NN>
+  line_coverage_percent: <NN>
   his_metrics:
     v_g: <cyclomatic_complexity>
     stpth: <statement_path>
@@ -21,7 +21,7 @@ baseline_metrics:
 current_metrics:
   ram_bytes: <NNNN>
   rom_bytes: <NNNN>
-  test_coverage_percent: <NN>
+  line_coverage_percent: <NN>
 
 human_stakeholders:
   - name: <Name>
@@ -69,7 +69,7 @@ risks:
 
 ### Comprehensive Review Summary
 
-**Review document**: `doc/reviews/<component>_review_<YYYYMMDD>.md`
+**Review document**: `doc/reviews/<component>_comprehensive_review_<YYYYMMDD>.md`
 
 Key findings:
 
@@ -126,12 +126,16 @@ Key findings:
 
 #### Definition of Done
 
-- [ ] All unit tests pass
+<!-- dod:delegated -->
+
+The DoD is the checklist in the skill — `SKILL.md` → *Step Definition of Done (DoD) Checklist*.
+Do not restate it here; paste the completed box with real evidence instead. A second list drifts
+from the first, and the copy that has lost a mandatory row is the one somebody works from.
+
+#### Resource Budget For This Step
+
 - [ ] RAM delta < 10% (actual: <N>%)
 - [ ] ROM delta < 10% (actual: <N>%)
-- [ ] Human review approved
-- [ ] Retrospective completed
-- [ ] Changes committed and pushed
 
 #### Retrospective Notes
 

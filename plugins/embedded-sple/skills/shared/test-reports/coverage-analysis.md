@@ -59,6 +59,70 @@ Functions:    24      64      37.5%
 Branches:     450     689     65.3%
 ```
 
+## Per File and Per Function
+
+The totals above answer "where does the component stand". A roadmap step needs the next question
+answered too — *which* file and *which* function is uncovered. Both are in the same file:
+
+- **Per file** — each entry of `files` carries its own `lines`.
+- **Per function** — every entry of `lines` carries `function_name`. Group by it.
+
+> The `functions` array is **not** the place to look. Its entries give `execution_count` (was the
+> function entered at all) and `blocks_percent`, never the line coverage of the body. Reading only
+> that array is what makes per-function coverage look unavailable.
+
+```powershell
+$cov = Get-Content "build/<VARIANT>/test/Debug/<COMPONENT>/coverage.json" -Raw | ConvertFrom-Json
+
+function Get-LineStats($lines) {
+    $total    = @($lines).Count
+    $covered  = @($lines | Where-Object { $_.count -gt 0 }).Count
+    $branches = @($lines | ForEach-Object { $_.branches } | Where-Object { $_ })
+    [PSCustomObject]@{
+        Lines         = $total
+        LinesCovered  = $covered
+        LinePercent   = if ($total) { [math]::Round($covered / $total * 100, 1) } else { 0 }
+        Branches      = @($branches).Count
+        BranchCovered = @($branches | Where-Object { $_.count -gt 0 }).Count
+    }
+}
+
+"Per file"
+foreach ($f in $cov.files) {
+    $s = Get-LineStats $f.lines
+    "  {0,-40} {1,4}/{2,-4} {3,5}%" -f $f.file, $s.LinesCovered, $s.Lines, $s.LinePercent
+}
+
+"`nPer function"
+foreach ($f in $cov.files) {
+    $f.lines |
+        Group-Object { if ($_.function_name) { $_.function_name } else { "(file scope)" } } |
+        Sort-Object Name |
+        ForEach-Object {
+            $s = Get-LineStats $_.Group
+            "  {0,-30} lines {1,3}/{2,-3} {3,5}%   branches {4,2}/{5,-2}" -f `
+                $_.Name, $s.LinesCovered, $s.Lines, $s.LinePercent, $s.BranchCovered, $s.Branches
+        }
+}
+```
+
+Example output:
+
+```text
+Per file
+  src/component/src/component.c               5/8     62.5%
+
+Per function
+  (file scope)                   lines   2/3    66.7%   branches  0/0
+  partiallyTested                lines   2/4      50%   branches  1/2
+  someInterfaceOfComponent       lines   1/1     100%   branches  0/0
+```
+
+**`(file scope)` is not a defect.** gcovr omits `function_name` for lines that belong to no
+function — an initialiser at file scope, for instance. The grouping expression above folds a
+missing, null or empty name into that one bucket; grouping on the raw field splits them and reports
+the same bucket twice.
+
 ## Extracting Test Results from JUnit XML
 
 > **GTest quirk**: GTest JUnit output uses `<testsuite>` as the root element, not `<testsuites>`.

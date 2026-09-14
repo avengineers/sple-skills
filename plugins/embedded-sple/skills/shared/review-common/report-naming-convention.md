@@ -29,11 +29,8 @@ doc/reviews/StateMgr_c-code-review-checklist_20260428_133045.md
 
 > ⚠️ **AGENT INSTRUCTION — NEVER OVERWRITE AN EXISTING REPORT**
 
-Before saving, **always check** if the target file already exists:
-
-```powershell
-Test-Path "doc/reviews/<target_filename>.md"
-```
+Before saving, **always check whether the target file already exists** — any shell or tool will do,
+the answer is what the next two lines depend on:
 
 - If the file does **not** exist → save with the base name.
 - If the file **already exists** → append a numeric suffix: `_2`, `_3`, … until a free name is found.

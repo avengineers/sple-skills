@@ -53,7 +53,7 @@ Select-String -Path "components/<component>/**/*.c" -Pattern "polyspace" -Recurs
 
 > 🚫 **BLOCKING STEP — DO NOT SKIP**
 >
-> Existing IDE diagnostics (`ide-get_diagnostics`) may reflect a previous analysis run and
+> Existing IDE diagnostics may reflect a previous analysis run and
 > **MUST NOT be used** without first requesting a fresh analysis from the user. Stale results
 > can miss new findings or reference code that has changed since the last run.
 >

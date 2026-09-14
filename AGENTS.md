@@ -33,6 +33,40 @@ Each skill is a self-contained directory with a `SKILL.md` (frontmatter + instru
 - **Cross-skill references** within a plugin use `../sibling-skill/references/file.md`
 - **Shared references** for content used by multiple skills live in `skills/shared/<topic>/` and are referenced via `../shared/<topic>/file.md`
 
+### No Host-Specific Tool Names
+
+These skills run under several agents, so a tool name from one of them is an instruction the other
+two cannot follow. **Describe the capability, not the tool.** Enforced by
+`test/skills/test_skill_structure.py`, which rejects `AskUserQuestion`, anything shaped like
+`ide-*` or `mcp__*`, and the other single-host names it lists.
+
+| Capability | Write this | Not this |
+|------------|------------|----------|
+| Ask the human and wait | `ask_user` | `AskUserQuestion` |
+| Read analyser findings from the editor | "the IDE diagnostics" | `ide-get_diagnostics` |
+
+`ask_user` is a **placeholder for whatever the host offers**, not a real tool anywhere. It looks
+like a tool name, which is why a review round flagged it as wrong — it is not, and this table is
+here so the question is not raised a third time.
+
+### Code Examples in Skills
+
+This is a **public** repository. Code examples in skill documentation must never leak internals
+from downstream (customer/project) repositories — no project-specific component names, RTE symbol
+prefixes, feature-flag values, requirement IDs, or hardware constants.
+
+- **Always base code examples on the Avengineers SPLED reference repo**:
+  <https://github.com/avengineers/SPLed> (`components/`, e.g. `power_signal_processing`,
+  `brightness_controller`, `light_controller`, `flight_controller`). Use its real names, RTE
+  conventions (`RteGetPowerState`, `POWER_STATE_ON`), `CONFIG_*` feature flags, and variants
+  (`Disco`, `Spa`, `Base`). If the repo is not checked out locally, fetch it from that URL before
+  writing examples.
+- When SPLED has no matching example, it is fine to write a plausible one **in SPLED style** — the
+  point is that it reads as generic SPLE and reveals nothing project-specific, not that every
+  snippet exists verbatim in SPLED.
+- When adapting content that originated in a downstream repo, strip its identifiers and re-ground
+  the example on SPLED before committing.
+
 ### Shared References (`skills/shared/`)
 
 When multiple skills share common workflow logic or documentation, extract it into `skills/shared/<topic-name>/`. This avoids duplication and keeps individual skills lean.

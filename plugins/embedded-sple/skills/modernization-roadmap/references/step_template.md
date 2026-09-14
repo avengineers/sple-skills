@@ -47,15 +47,16 @@ Specific changes:
 
 #### Definition of Done
 
-**Mandatory (non-negotiable)**:
+<!-- dod:delegated -->
 
-- [ ] All unit tests pass
+The DoD is the checklist in the skill — `SKILL.md` → *Step Definition of Done (DoD) Checklist*.
+Paste the completed box with real evidence. The items below are additional to it, never a
+replacement.
+
+#### Additional Checks For This Step
+
 - [ ] RAM increase < 10%
 - [ ] ROM increase < 10%
-- [ ] Human review approved
-
-**Quality gates**:
-
 - [ ] No new compiler warnings
 - [ ] No new static analysis findings
 - [ ] Code follows BARR-C:2018 style
