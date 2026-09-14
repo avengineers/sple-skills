@@ -1,0 +1,19 @@
+# One line ending for everything, decided once here instead of per machine.
+#
+# Without this file Git stores whatever bytes were committed, so what lands in
+# the repository depends on the editor and the operating system of whoever
+# touched a file last. This repository had 97 files stored CRLF and 21 stored
+# LF, and the mixture cost real time: a script that read an LF file and wrote it
+# back on Windows turned every line into a changed line, which produced a diff
+# of 266 lines for a change of two.
+#
+# `text=auto` is the part that fixes it. Git normalises text files to LF when
+# they are checked in, so it no longer matters what the working copy looks like.
+# `eol=lf` keeps the working copy the same as the stored form, so there is no
+# conversion anywhere and no dependence on a per-developer `core.autocrlf`.
+#
+# LF and not CRLF, although this team edits on Windows: `eol=crlf` would force
+# CRLF on every platform, including the Linux CI, and the two shell scripts
+# below would fail there with `bad interpreter: /bin/bash^M`. Nothing in this
+# repository needs CRLF - there is no .bat and no .cmd file.
+* text=auto eol=lf
