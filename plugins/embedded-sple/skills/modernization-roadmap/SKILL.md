@@ -1,6 +1,6 @@
 ---
 name: modernization-roadmap
-description: Use this skill when refactoring, modernizing, or decomposing legacy C components. Guides incremental code improvements with human-in-the-loop checkpoints, test safety nets, and file-based state tracking. Starts with a comprehensive review (static analysis, coverage, HIS metrics) then creates a step-by-step roadmap. Trigger on any mention of modernizing embedded code, reducing technical debt in C modules, refactoring tightly-coupled components, or creating a refactoring plan — even if the user just says "clean up this legacy mess".
+description: Use this skill when refactoring, modernizing, or decomposing legacy C components. Guides incremental code improvements with human-in-the-loop checkpoints, test safety nets, and file-based state tracking. Starts with a comprehensive review (static analysis, coverage, HIS metrics) then creates a step-by-step roadmap. Trigger on any mention of modernizing embedded code, reducing technical debt in C modules, refactoring tightly-coupled components, creating a refactoring plan, or resuming an existing modernization roadmap — even if the user just says "clean up this legacy mess".
 compatibility: "Requires PowerShell 5.1+ and Python 3.8+. Depends on sibling skills - build-execution, c-unit-testing, c-code-review-comprehensive, retrospective, conventional-commits, project-knowledge-base."
 ---
 
@@ -17,34 +17,18 @@ This skill uses the shared incremental roadmap framework.
 
 All common workflow rules (forbidden behaviors, retrospective requirements) from the shared engine apply here. The sections below define **modernization-specific** behavior.
 
-> **CRITICAL CONSTRAINT**: Follow this skill EXACTLY as written. Do NOT:
-> - Batch multiple steps together for "efficiency"
-> - Skip or combine checkpoints
-> - Proceed past a BLOCKING CHECKPOINT without explicit human approval
-> - Automatically continue to the next step after completing one
-> - Modify or remove existing template/document elements unless explicitly requested
->
-> The incremental, human-in-the-loop design is **intentional**.
-
 ---
-
-## When to Use This Skill
-
-- Modernizing monolithic C components
-- Decomposing tightly coupled code
-- Improving maintainability and testability
-- Reducing technical debt incrementally
 
 ## First Contact
 
-When the user first invokes this skill, before diving into the State Matrix:
+When the user first invokes this skill:
 
 1. **Confirm component path** — ask which component to modernize if not clear from the request
-2. **Explain the process** — briefly describe the three phases (analysis → iterative steps → completion) and that every step requires human approval
-3. **Identify stakeholders** — ask who should review and approve changes (for the roadmap document)
-4. **Set expectations** — this is incremental work across multiple sessions, not a one-shot refactoring
+2. **Run the document detection** — the globs in *Document Detection* above, before asking anything else. What is worth asking depends on whether a roadmap already exists, so a question asked first can overwrite an agreement that was already made
+3. **A roadmap exists** — report where it stands: current step of total, the metrics against their targets, and the date of the file you picked. Resume there. Do **not** re-ask for the stakeholders or the goals — the roadmap records them. Change them only if the user asks, and then say what they were before
+4. **No roadmap exists** — explain the three phases (analysis → iterative steps → completion) and that every step requires human approval; ask who should review and approve changes, for the roadmap document; set expectations — incremental work across multiple sessions, not a one-shot refactoring
 
-Then proceed to Phase 1 (document detection via the State Matrix).
+Then proceed to Phase 1.
 
 ---
 
@@ -66,10 +50,30 @@ These paths and parameters fill the consuming-skill slots in the shared workflow
 | Review file path | `doc/reviews/<component>_comprehensive_review_<YYYYMMDD>.md` |
 | Roadmap file path | `doc/modernization/<component>_modernization_roadmap_<YYYYMMDD>.md` |
 | Lessons learned file | `doc/project_notes/modernization_lessons_learned.md` |
-| Retrospective path | `doc/modernization/retrospectives/<Component>_Step_<N>_retrospective.md` |
+| Retrospective path | `doc/modernization/retrospectives/<component>_Step_<N>_retrospective.md` |
 | Roadmap template | `references/roadmap_template.md` |
 | Step template | `references/step_template.md` |
 | Lessons learned template | `../shared/roadmap-common/lessons_learned_template.md` |
+
+### Document Detection
+
+The shared engine's State Matrix runs these globs; it does not define them. Run them **before
+anything else**. A roadmap the detection misses is a roadmap that gets written a second time, and
+the progress recorded in the first one is lost.
+
+<!-- document-detection:begin -->
+
+| Document | Glob |
+|----------|------|
+| Comprehensive review | `doc/reviews/<component>_comprehensive_review_*.md` |
+| Modernization roadmap | `doc/modernization/<component>_modernization_roadmap_*.md` |
+
+| Situation | Rule |
+|-----------|------|
+| Several files match | Take the one with the newest date in its file name and say which one you took. Never merge two roadmaps, and never start a third. |
+| Newest unclear | Two files carry the same date, or one carries none: stop and ask which to resume. Guessing here discards somebody's work. |
+
+<!-- document-detection:end -->
 
 ---
 
@@ -80,7 +84,7 @@ These extend the common forbidden behaviors from the shared workflow engine.
 | Forbidden Action | Why It's Forbidden |
 |------------------|--------------------|
 | Exceeding 10% RAM/ROM increase per step | Resource constraints are hard limits for embedded targets |
-| Skipping characterization tests when coverage < 90% | Behavior must be frozen before refactoring |
+| Skipping characterization tests when line coverage < 90% | Behavior must be frozen before refactoring |
 
 ---
 
@@ -106,10 +110,12 @@ The roadmap MUST reference findings from this review by their IDs.
 
 ### Coverage Check (after Step 1.3)
 
-After creating the roadmap (Step 1.3), extract coverage from comprehensive review results:
+After creating the roadmap (Step 1.3), extract **line coverage** from the comprehensive review
+results. Line coverage is the gate here, the same metric `test-coverage-roadmap` gates on, so a
+component does not pass one skill and fail the other:
 
-- If coverage ≥ 90%: proceed to Phase 2
-- If coverage < 90%: add characterization tests first
+- If line coverage ≥ 90%: proceed to Phase 2
+- If line coverage < 90%: add characterization tests first
 
 Before writing ANY test code, invoke the `c-unit-testing` skill for project conventions (BDD/Gherkin, hammocking, traceability).
 
@@ -143,7 +149,7 @@ Present plan via `ask_user` for explicit approval before any code changes.
 
 ### Step 2.5: Build & Test
 
-Invoke `build-execution` to build and run unit tests for the component.
+Invoke `build-execution` with `buildKit=test` to build and run unit tests for the component.
 
 ### Step 2.6: Measure & Verify
 
@@ -177,7 +183,7 @@ Present via `ask_user`:
 
 ### Step 2.8: Retrospective & Lessons (MANDATORY)
 
-Invoke `retrospective` skill. Save file, verify with `Test-Path`. Update lessons learned file.
+Invoke `retrospective` skill. Save the file, then verify that the file exists. Update lessons learned file.
 
 ### Step 2.9: Document & Commit
 
@@ -192,6 +198,8 @@ Evaluate whether modernization goals are met. If more steps remain, report progr
 ## Step Definition of Done (DoD) Checklist
 
 > Present this completed DoD before asking about the next step. Every checkbox needs real evidence.
+
+<!-- step-dod:begin -->
 
 ```text
 ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -208,7 +216,7 @@ Evaluate whether modernization goals are met. If more steps remain, report progr
 ║                                  │      │ Within 10% limit: Yes/No           ║
 ║ 2.7 Human approved results       │ [ ]  │ User said: ________________        ║
 ║ 2.8a Retrospective written       │ [ ]  │ File: ________________________     ║
-║      (NEVER SKIP)                │      │ Test-Path result: True/False       ║
+║      (NEVER SKIP)                │      │ Existence check: True/False        ║
 ║ 2.8b Lessons learned updated     │ [ ]  │ Entry added: Yes/No                ║
 ║      (NEVER SKIP)                │      │                                    ║
 ║ 2.9a Roadmap updated             │ [ ]  │ Step marked: COMPLETED             ║
@@ -216,6 +224,8 @@ Evaluate whether modernization goals are met. If more steps remain, report progr
 ║ 2.10 Target checked              │ [ ]  │ Goals met: Yes/No / Next action    ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 ```
+
+<!-- step-dod:end -->
 
 **Rules**: Fill ALL fields with actual values (no `____` placeholders in final output). Steps 2.8a and 2.8b are NEVER skippable. If any other item cannot be completed, use `ask_user` for explicit skip approval.
 
@@ -228,7 +238,8 @@ Invoke `c-code-review-comprehensive` as final comparison review.
 1. Compare metrics: before vs after
 2. Update roadmap with final metrics
 3. Document final lessons learned
-4. Set roadmap status to `COMPLETED`
+4. **Record the decisions that outlive this roadmap** — Invoke `project-knowledge-base` for anything a future maintainer needs but would never find in an archived roadmap: a rejected refactoring and why, an interface that had to stay for compatibility, a resource budget that was deliberately exceeded. Skip it when none of those occurred — say so rather than writing an empty entry
+5. Set roadmap status to `COMPLETED`
 
 ---
 
@@ -237,11 +248,12 @@ Invoke `c-code-review-comprehensive` as final comparison review.
 | Phase       | Skill to Invoke                | Mandatory |
 |-------------|--------------------------------|-----------|
 | Analysis    | `c-code-review-comprehensive`  | YES — initial + final review |
+| Build & Test | `build-execution`             | YES — every step |
 | Test Safety | `c-unit-testing`           | If coverage < 90% |
 | Each Step   | `retrospective`               | YES |
 | Commit      | `conventional-commits`         | YES |
 | Branching   | `conventional-commits`         | YES |
-| Decisions   | `project-knowledge-base`               | YES |
+| Decisions   | `project-knowledge-base`       | When a decision outlives the roadmap — see Phase 3 |
 
 > **Note**: Static Analysis, Test Coverage, and HIS Metrics are all included in `c-code-review-comprehensive` — do NOT invoke them separately.
 

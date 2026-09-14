@@ -62,6 +62,7 @@ These rules apply to every roadmap-based skill. Each skill may add additional do
 | Skipping retrospective | Each step needs learnings captured | No retrospective file created |
 | Asking "next step?" without retrospective file | Retrospective must exist on disk before proceeding | No retrospective file created |
 | Not updating roadmap after step | Progress must be tracked | Roadmap not updated with metrics |
+| Removing or rewriting existing template or document elements without being asked | The roadmap document carries the state across sessions — silent edits destroy content the user agreed to | Sections the user wrote are gone or reworded |
 | Committing with incomplete DoD | Required artifacts must exist before commit | DoD items missing evidence |
 | Proceeding without presenting completed DoD | All checkboxes must be filled with evidence | No DoD table shown |
 
@@ -198,7 +199,7 @@ Retrospective content:
 
 ### Check Target (Step 2.10)
 
-Domain-specific evaluation of progress against the overall goal. The consuming skill defines what "done" means (e.g., coverage ≥ 95%, all modernization steps complete). If the target is not met, the agent identifies what remains and plans additional steps.
+Domain-specific evaluation of progress against the overall goal. The consuming skill defines what "done" means (e.g., the agreed coverage target reached, all modernization steps complete). If the target is not met, the agent identifies what remains and plans additional steps.
 
 ---
 
@@ -206,20 +207,33 @@ Domain-specific evaluation of progress against the overall goal. The consuming s
 
 Every roadmap skill must present a completed DoD checklist before transitioning to the next step. The base pattern includes these mandatory items that every step must verify:
 
+The **step id in the first column is the join** to every consuming skill: each skill's own DoD box
+repeats the id, so the two can be compared without duplicating any wording. Ids are therefore
+unique here, and the `test_skill_structure.py` suite fails when a consuming skill drops one. The
+markers around the table are HTML comments — invisible in rendered markdown, exact for the test,
+and stable across a heading rename.
+
+<!-- base-dod:begin -->
+
 | Step | Base DoD Item | Evidence Required |
 |------|---------------|-------------------|
+| 2.1 | Lessons learned consulted | Lessons that apply to this step, or "none yet" |
 | 2.2 | Plan created and approved | User approval captured |
 | 2.4 | Implementation complete | Files changed listed |
 | 2.5 | Build & tests pass | Exit code + test results |
 | 2.6 | Metrics measured | Domain-specific measurement evidence |
 | 2.7 | Human approved results | User approval captured |
-| 2.8 | Retrospective written (NEVER SKIP) | File path + `Test-Path: True` |
-| 2.8 | Lessons learned updated | Entry added confirmation |
-| 2.9 | Roadmap step updated | Step marked COMPLETED |
-| 2.9 | Committed & pushed | `git log --oneline -1` output |
+| 2.8a | Retrospective written (NEVER SKIP) | File path + existence check output |
+| 2.8b | Lessons learned updated (NEVER SKIP) | Entry added confirmation |
+| 2.9a | Roadmap step updated | Step marked COMPLETED |
+| 2.9b | Committed & pushed | `git log --oneline -1` output |
 | 2.10 | Target checked | Progress vs goal documented |
 
+<!-- base-dod:end -->
+
 Each consuming skill extends this base with domain-specific items (metrics, coverage data, resource impact, etc.). The DoD template may use `____` as fill-in prompts, but the presented (completed) DoD must contain real evidence — never placeholders.
+
+Row 2.1 closes the loop the Core Principles open: lessons learned are consulted **before** a step, not only written after it. Without a DoD row for it, the consultation is invisible and gets skipped.
 
 ---
 

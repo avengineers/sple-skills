@@ -54,7 +54,7 @@ Run these sub-skills in this order. Each skill has its own workflow — follow i
 Invoke the `static-code-analysis` skill. This is MANDATORY and BLOCKING:
 - The skill will ask the user to trigger Polyspace in VS Code
 - **WAIT for explicit user confirmation** before proceeding
-- Do NOT use cached `ide-get_diagnostics` results — only fresh analysis
+- Do NOT use cached IDE diagnostics — only fresh analysis
 
 **3b. CHK_Code + BARR-C:2018**
 
@@ -71,7 +71,7 @@ Execute: `.venv/Scripts/python plugins/embedded-sple/skills/his-metrics/scripts/
 **3e. Test Coverage**
 
 Use the shared [Coverage Analysis](../shared/test-reports/coverage-analysis.md) reference:
-1. Run report target (runs tests + generates coverage): invoke `build-execution` with buildKit=test, variant=\<VARIANT\>, target=components\_\<path\>\_report
+1. Run report target (runs tests + generates coverage): invoke `build-execution` with buildKit=test, buildType=Debug, variant=\<VARIANT\>, target=components\_\<path\>\_report
 2. Parse `build/<VARIANT>/test/Release_fast/components/<path>/coverage.json` for metrics
 
 ### Step 4: Apply Own Checklists
@@ -110,7 +110,7 @@ A comprehensive review is considered **complete** when the following criteria ar
 | 0 | **Review Context Collected** | Git metadata (branch, commit hash, author, Jira ticket, branch type) read and filled into protocol header |
 | 1 | **All Reviewed Files Listed** | Every individual `.c` and `.h` file that was opened and read is listed by full path in the protocol header |
 | 2 | **Review Scope Confirmed** | All mandatory areas performed: Static Analysis, CHK_Code, BARR-C, MISRA, Clean Code, Defensive Programming, Legacy Code, HIS Metrics, Architecture, Test Coverage |
-| 3 | **Static Analysis Reviewed** | Fresh Polyspace analysis triggered by user and confirmed complete; findings retrieved via `ide-get_diagnostics` **after** user confirmation — pre-existing cached results never accepted |
+| 3 | **Static Analysis Reviewed** | Fresh Polyspace analysis triggered by user and confirmed complete; findings read from the IDE diagnostics **after** user confirmation — pre-existing cached results never accepted |
 | 4 | **No Red/Critical Findings** | Zero unaddressed Red (RTE) Polyspace findings |
 | 5 | **MISRA Mandatory Rules** | All mandatory rule violations addressed or formally deviated |
 | 6 | **CHK_Code Checklist Applied** | All applicable items from the 41-item CHK_Code checklist reviewed — using SCA results for MISRA/RTE-related items |

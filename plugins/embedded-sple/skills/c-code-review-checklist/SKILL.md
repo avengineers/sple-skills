@@ -21,7 +21,7 @@ Follow the guidelines in [shared communication style](../shared/review-common/co
 
 > ⚠️ **AGENT INSTRUCTION**: Step 3 (static analysis via `static-code-analysis` skill) is **MANDATORY** and must ALWAYS be performed. Do NOT skip it. Do NOT proceed past static analysis without user confirmation that Polyspace has run. The review is incomplete without static analysis results.
 >
-> 🚫 **BLOCKING — existing IDE diagnostics (`ide-get_diagnostics`) MUST NOT be used without a fresh analysis.** Cached results may be stale and can miss new findings or reference changed code. Use `ask_user` to request a fresh Polyspace run and wait for explicit user confirmation before calling `ide-get_diagnostics`.
+> 🚫 **BLOCKING — existing IDE diagnostics MUST NOT be used without a fresh analysis.** Cached results may be stale and can miss new findings or reference changed code. Use `ask_user` to request a fresh Polyspace run and wait for explicit user confirmation before reading the IDE diagnostics.
 
 4. **Apply checklist**: Work through applicable CHK_Code criteria
 5. **Check Barr-C:2018**: compliance to coding guidelines (see skill 'c-coding-standards', use the 11-quick-scan.md and 12-pr-review.md checklists)
@@ -38,6 +38,7 @@ Before full review, verify these common issues:
 - All pointers validated before use (!=NULL)
 - No divisions without zero-check
 - `static`, `volatile`, `const` used appropriately
+- `#define`/`enum` values owned by the provider/server module, not redefined by clients/receivers (→ CHK_Code #43)
 - No hollow Polyspace justifications (see below)
 
 ## Hollow Justification Detection
@@ -74,7 +75,7 @@ A valid justification states: (1) what the code does, (2) why it's safe despite 
 
 For comprehensive review, load the complete checklist:
 
-- **[CHK_Code Checklist](references/chk-code-checklist.md)**: Full 41-item company review checklist
+- **[CHK_Code Checklist](references/chk-code-checklist.md)**: Full 43-item company review checklist
 - **[Barr-C:2018 Quick Scan](../c-coding-standards/checklists/11-quick-scan.md)**: Fast pass for high-risk patterns
 - **[Barr-C:2018 PR Review Checklist](../c-coding-standards/checklists/12-pr-review.md)**: Structured PR review process
 
@@ -92,7 +93,7 @@ A code review is considered **complete** when the following criteria are met:
 |---|-----------|-------------|
 | 0 | **Review Context Collected** | Git metadata (branch, commit hash, author, Jira ticket, branch type) read and filled into protocol header |
 | 1 | **All Reviewed Files Listed** | Every individual `.c` and `.h` file that was opened and read is listed by full path in the protocol header |
-| 2 | **Static Analysis Reviewed** | Fresh Polyspace analysis triggered by user and confirmed complete; findings retrieved via `ide-get_diagnostics` **after** user confirmation — pre-existing cached results never accepted |
+| 2 | **Static Analysis Reviewed** | Fresh Polyspace analysis triggered by user and confirmed complete; findings read from the IDE diagnostics **after** user confirmation — pre-existing cached results never accepted |
 | 3 | **No Red/Critical Findings** | Zero unaddressed Red (RTE) Polyspace findings (see `static-code-analysis` skill) |
 | 4 | **MISRA Mandatory Rules** | All mandatory rule violations addressed or formally deviated (see `static-code-analysis` skill) |
 | 5 | **CHK_Code Checklist Applied** | All applicable items from the 42-item CHK_Code checklist reviewed — using SCA results for MISRA/RTE-related items |
