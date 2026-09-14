@@ -1,0 +1,51 @@
+{
+  "skill": "c-code-review-checklist",
+  "about": "Three review skills overlap on purpose, so the question is not whether one fires but which of the three. Each case names the winner. c-code-review-checklist is the standard review for a branch or a PR; c-code-review-comprehensive is the periodic deep assessment; c-architecture-review owns coupling, cohesion and structure. The descriptions already point at each other, so this measures whether that disambiguation works.",
+  "cases": [
+    {
+      "query": "review the code in components/auto_off",
+      "expect": "c-code-review-checklist",
+      "why": "The plain request. Anything else here means the standard review lost its own home ground."
+    },
+    {
+      "query": "review this PR",
+      "expect": "c-code-review-checklist",
+      "why": "Both other descriptions say PR reviews belong here. The backlog names this as the mix-up to avoid: 'review this PR' must not pull in the comprehensive review."
+    },
+    {
+      "query": "run the CHK_Code checklist on power_button.c",
+      "expect": "c-code-review-checklist",
+      "why": "Names the artefact this skill owns."
+    },
+    {
+      "query": "do a comprehensive review of the diagnostics component",
+      "expect": "c-code-review-comprehensive",
+      "why": "Names the skill's own keyword."
+    },
+    {
+      "query": "we are about to refactor this module, assess its technical debt first",
+      "expect": "c-code-review-comprehensive",
+      "why": "Pre-refactoring analysis, claimed word for word by the description, without using any of its keywords."
+    },
+    {
+      "query": "I am new to this component and need a full quality assessment",
+      "expect": "c-code-review-comprehensive",
+      "why": "Onboarding to unfamiliar code, also claimed by the description."
+    },
+    {
+      "query": "check the coupling between auto_off and power_button",
+      "expect": "c-architecture-review",
+      "why": "This skill states it owns all coupling analysis and that the others delegate to it."
+    },
+    {
+      "query": "is this component too tightly bound to the hardware layer",
+      "expect": "c-architecture-review",
+      "why": "Structural question in words the description does not list. Tests reach beyond its keywords."
+    },
+    {
+      "query": "analyze the dependency direction between the components",
+      "expect": "c-architecture-review",
+      "why": "Dependency analysis, one of its listed triggers."
+    }
+  ]
+}

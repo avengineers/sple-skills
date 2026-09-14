@@ -1,0 +1,36 @@
+{
+  "skill": "test-coverage-roadmap",
+  "about": "The overlap with c-unit-testing is deliberate and is the routing risk: both skills claim test work. The roadmap owns the incremental campaign towards a coverage target, c-unit-testing owns writing an individual test. A query about one must not pull in the other.",
+  "cases": [
+    {
+      "query": "improve unit test coverage for components/auto_off to 90%",
+      "should_trigger": true,
+      "why": "Names a component and a coverage target — the roadmap's core case, straight from its own usage examples."
+    },
+    {
+      "query": "create a coverage roadmap for diagnostics.c",
+      "should_trigger": true,
+      "why": "Asks for the artefact by name."
+    },
+    {
+      "query": "we need more tests for this module, coverage is around 40 percent",
+      "should_trigger": true,
+      "why": "Casual phrasing with no keyword from the description. The description claims to cover exactly this."
+    },
+    {
+      "query": "resume test coverage improvement for communication_handler",
+      "should_trigger": true,
+      "why": "A resume. Added to the description on this branch, so it is worth measuring whether that worked."
+    },
+    {
+      "query": "write a unit test for the function AutoOff_Init",
+      "should_trigger": false,
+      "why": "One function, one test, no campaign — c-unit-testing's case. Pulling in the roadmap here starts a multi-session process for a five-minute job."
+    },
+    {
+      "query": "my gmock expectation fails with an unexpected call, what is wrong",
+      "should_trigger": false,
+      "why": "Debugging a single test. The roadmap has nothing to offer."
+    }
+  ]
+}
