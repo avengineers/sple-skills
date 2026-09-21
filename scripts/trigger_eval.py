@@ -24,12 +24,16 @@ What it measures, and what it does not:
   nothing about another.
 * A pass is a rate over N runs, not a proof. The decision is sampled, so a
   single run is noise.
+* A run that timed out or failed to start is dropped and says so on stderr.
+  The rate is therefore over the runs that answered, and a case where none
+  answered reports `0/0` and fails — it proved nothing either way.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass, field
@@ -95,6 +99,9 @@ class Result:
     rate: float
     passed: bool
     others: set[str] = field(default_factory=set)
+    # Runs that never answered. `runs` counts only the ones that did, so
+    # without this the report cannot say how many were paid for.
+    dropped: int = 0
 
 
 @dataclass(frozen=True)
@@ -116,6 +123,8 @@ def load_eval_set(path: Path) -> EvalSet:
     if not cases:
         raise ValueError(f"{path}: no 'cases' — an empty set reports green and proves nothing")
     for entry in cases:
+        if not entry.get("query"):
+            raise ValueError(f"{path}: case {entry!r} has no 'query' — there is nothing to send")
         if "should_trigger" not in entry and "expect" not in entry:
             raise ValueError(
                 f"{path}: case {entry.get('query')!r} has neither 'should_trigger' nor 'expect'"
@@ -193,17 +202,48 @@ def check_plugin_under_test(stream: str, expected: Path | None) -> None:
         )
 
 
-def verdict(case: Case, hits: int, runs: int, threshold: float, others: set[str] | None = None) -> Result:
+def verdict(
+    case: Case,
+    hits: int,
+    runs: int,
+    threshold: float,
+    others: set[str] | None = None,
+    dropped: int = 0,
+) -> Result:
     rate = hits / runs if runs else 0.0
     passed = rate >= threshold if case.should_trigger else rate < threshold
     if not runs:
         passed = False  # nothing ran, so nothing was shown
-    return Result(case=case, hits=hits, runs=runs, rate=rate, passed=passed, others=others or set())
+    return Result(
+        case=case,
+        hits=hits,
+        runs=runs,
+        rate=rate,
+        passed=passed,
+        others=others or set(),
+        dropped=dropped,
+    )
 
 
-def run_query(query: str, model: str, cwd: Path, timeout: int, plugin_dir: Path | None) -> str:
+def run_query(
+    query: str, model: str, cwd: Path, timeout: int, plugin_dir: Path | None
+) -> str | None:
+    """The recorded event stream of one run, or `None` if there was no run.
+
+    An empty stream is a valid result — it means the agent answered in prose
+    and reached for no skill. A timeout and a failed start produce the same
+    empty stream, so they return `None` instead: the caller cannot tell the
+    two apart afterwards, and counting them as measurements turns three
+    timeouts into a green negative case.
+    """
+    # `CreateProcess` does not apply PATHEXT, so a `claude.cmd` from an npm
+    # install is invisible to a bare "claude". Resolving it here also turns a
+    # missing CLI into one clear message instead of one per run.
+    executable = shutil.which("claude")
+    if executable is None:
+        raise FileNotFoundError("`claude` is not on PATH — install the CLI before running an eval")
     command = [
-        "claude",
+        executable,
         "-p",
         query,
         "--output-format",
@@ -234,7 +274,16 @@ def run_query(query: str, model: str, cwd: Path, timeout: int, plugin_dir: Path 
             timeout=timeout,
         )
     except subprocess.TimeoutExpired:
-        return ""
+        print(f"  dropped: no answer within {timeout}s", file=sys.stderr, flush=True)
+        return None
+    if finished.returncode != 0:
+        reason = (finished.stderr or "").strip() or "no message on stderr"
+        print(
+            f"  dropped: the CLI exited with {finished.returncode} — {reason}",
+            file=sys.stderr,
+            flush=True,
+        )
+        return None
     return finished.stdout or ""
 
 
@@ -250,21 +299,23 @@ def evaluate(
     report: bool = True,
 ) -> Outcome:
     results = []
-    verified = False
     for case in eval_set.cases:
         target = case.target(eval_set.skill)
         hits, others, executed = 0, set(), 0
         for _ in range(runs):
             stream = run_query(case.query, model, cwd, timeout, plugin_dir)
-            if not verified:
-                check_plugin_under_test(stream, plugin_dir)
-                verified = True
+            if stream is None:
+                continue
+            # Every run, not only the first: a session that swaps the plugin
+            # part-way keeps producing numbers otherwise, which is the silent
+            # wrong measurement this check exists to prevent.
+            check_plugin_under_test(stream, plugin_dir)
             used = invoked_skills(stream)
             executed += 1
             if target in used:
                 hits += 1
             others |= used - {target}
-        result = verdict(case, hits, executed, threshold, others)
+        result = verdict(case, hits, executed, threshold, others, dropped=runs - executed)
         results.append(result)
         if report:
             print(_line(result), flush=True)
@@ -277,7 +328,12 @@ def _line(result: Result) -> str:
         want = f"-> {result.case.expect}"
     else:
         want = "should trigger" if result.case.should_trigger else "must not trigger"
-    tail = f"  (also: {', '.join(sorted(result.others))})" if result.others else ""
+    notes = []
+    if result.dropped:
+        notes.append(f"{result.dropped} of {result.dropped + result.runs} dropped")
+    if result.others:
+        notes.append(f"also: {', '.join(sorted(result.others))}")
+    tail = f"  ({'; '.join(notes)})" if notes else ""
     return (
         f"{mark}  {result.hits}/{result.runs} = {result.rate:.0%}  {want:16} "
         f"{result.case.query!r}{tail}"

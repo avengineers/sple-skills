@@ -40,7 +40,7 @@
 All areas below were performed (all mandatory):
 
 - [x] 🔒 **Static Analysis (Polyspace/QAC)**
-- [x] 🔒 **CHK_Code Checklist** (41 items)
+- [x] 🔒 **CHK_Code Checklist** (43 items)
 - [x] 🔒 **BARR-C:2018 Compliance** (c-coding-standards skill)
 - [x] 🔒 **MISRA C:2012 Compliance**
 - [x] 🔒 **Clean Code Assessment**
@@ -239,7 +239,7 @@ Reference: [Legacy Code Checklist](../checklists/legacy-code-checklist.md)
 .\build.ps1 -build -buildKit test -buildType Debug -variant <VARIANT> -target <COMPONENT>_unittests
 
 # Generate coverage report
-.\build.ps1 -build -buildKit test -buildType Debug -variant <VARIANT> -target <COMPONENT>_reports
+.\build.ps1 -build -buildKit test -buildType Debug -variant <VARIANT> -target <COMPONENT>_report
 ```
 
 ### Test Execution
@@ -270,7 +270,7 @@ Reference: [Legacy Code Checklist](../checklists/legacy-code-checklist.md)
 
 ### Report Location
 
-`build/<VARIANT>/test/Debug/<COMPONENT>/coverage.json`
+`build/<VARIANT>/test/Debug/<COMPONENT_PATH>/coverage.json`
 
 ---
 

@@ -96,7 +96,7 @@ A code review is considered **complete** when the following criteria are met:
 | 2 | **Static Analysis Reviewed** | Fresh Polyspace analysis triggered by user and confirmed complete; findings read from the IDE diagnostics **after** user confirmation — pre-existing cached results never accepted |
 | 3 | **No Red/Critical Findings** | Zero unaddressed Red (RTE) Polyspace findings (see `static-code-analysis` skill) |
 | 4 | **MISRA Mandatory Rules** | All mandatory rule violations addressed or formally deviated (see `static-code-analysis` skill) |
-| 5 | **CHK_Code Checklist Applied** | All applicable items from the 42-item CHK_Code checklist reviewed — using SCA results for MISRA/RTE-related items |
+| 5 | **CHK_Code Checklist Applied** | All applicable items from the 43-item CHK_Code checklist reviewed — using SCA results for MISRA/RTE-related items |
 | 6 | **BARR-C:2018 Compliance** | Quick scan checklist completed, no high-severity violations |
 | 7 | **Review Protocol Created** | Findings documented following [Report Naming Convention](../shared/review-common/report-naming-convention.md) — never overwrite an existing report |
 | 8 | **Recommendations Provided** | Each finding has actionable fix recommendations |

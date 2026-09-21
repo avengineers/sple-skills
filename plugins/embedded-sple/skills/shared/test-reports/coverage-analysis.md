@@ -8,18 +8,22 @@ After building a `_unittests` or `_test` target with `buildKit=test, buildType=D
 
 | Artifact | Path | Description |
 |----------|------|-------------|
-| Coverage JSON | `build/<VARIANT>/test/Debug/<COMPONENT>/coverage.json` | Coverage data (gcovr format) |
-| JUnit XML | `build/<VARIANT>/test/Debug/<COMPONENT>/junit.xml` | Test results |
-| Coverage HTML | `build/<VARIANT>/test/Debug/<COMPONENT>/reports/coverage/` | Visual coverage report |
+| Coverage JSON | `build/<VARIANT>/test/Debug/<COMPONENT_PATH>/coverage.json` | Coverage data (gcovr format) |
+| JUnit XML | `build/<VARIANT>/test/Debug/<COMPONENT_PATH>/junit.xml` | Test results |
+| Coverage HTML | `build/<VARIANT>/test/Debug/<COMPONENT_PATH>/reports/coverage/` | Visual coverage report |
 
 > **Important**: Coverage data is only generated in `Debug` builds. Always use `buildType=Debug`.
+
+> **`<COMPONENT_PATH>` is the path, not the name**: the build mirrors the source tree, so the
+> placeholder expands to `components/auto_off`, not `auto_off`. Dropping the `components/` segment
+> points the read at a directory that does not exist.
 
 ## Extracting Coverage from coverage.json
 
 The `coverage.json` file uses gcovr format. This is the preferred method for automated extraction — more reliable than HTML scraping.
 
 ```powershell
-$cov = Get-Content "build/<VARIANT>/test/Debug/<COMPONENT>/coverage.json" -Raw | ConvertFrom-Json
+$cov = Get-Content "build/<VARIANT>/test/Debug/<COMPONENT_PATH>/coverage.json" -Raw | ConvertFrom-Json
 
 $totalLines = 0; $coveredLines = 0
 $totalFuncs = 0; $coveredFuncs = 0
@@ -72,7 +76,7 @@ answered too — *which* file and *which* function is uncovered. Both are in the
 > that array is what makes per-function coverage look unavailable.
 
 ```powershell
-$cov = Get-Content "build/<VARIANT>/test/Debug/<COMPONENT>/coverage.json" -Raw | ConvertFrom-Json
+$cov = Get-Content "build/<VARIANT>/test/Debug/<COMPONENT_PATH>/coverage.json" -Raw | ConvertFrom-Json
 
 function Get-LineStats($lines) {
     $total    = @($lines).Count
@@ -129,7 +133,7 @@ the same bucket twice.
 > Always access via `$junit.testsuite`, never `$junit.testsuites.testsuite`.
 
 ```powershell
-[xml]$junit = Get-Content "build/<VARIANT>/test/Debug/<COMPONENT>/junit.xml"
+[xml]$junit = Get-Content "build/<VARIANT>/test/Debug/<COMPONENT_PATH>/junit.xml"
 $junit.testsuite | Select-Object name, tests, failures, errors, time
 ```
 

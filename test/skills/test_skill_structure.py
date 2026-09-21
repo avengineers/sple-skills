@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from string import ascii_lowercase
 
 import pytest
 
@@ -111,6 +112,8 @@ def _dod_sections(path: Path) -> list[str]:
 
 REQUIRED_SKILLS_HEADING = re.compile(r"^#{2,3}\s+Required Skill Invocations\s*$", re.MULTILINE)
 FRONTMATTER = re.compile(r"\A---\n.*?\n---\n", re.DOTALL)
+# `>`, `|`, and their chomping and indentation indicators, e.g. `>-` or `|2`.
+BLOCK_SCALAR = re.compile(r"^[|>][+-]?\d*$")
 BACKTICKED = re.compile(r"`([a-z0-9][a-z0-9-]*)`")
 # Only an explicit "Invoke `x`" counts as an invocation. The documents also
 # name sibling skills to hand work over or to cite evidence, and those are
@@ -220,6 +223,24 @@ def _base_dod_ids() -> list[str]:
     return _table_step_ids(_base_dod_block())
 
 
+def _step_of(dod_id: str) -> str:
+    """The step a DoD row belongs to: `2.8a` is part of Step `2.8`.
+
+    Only the letter suffix goes. Cutting by prefix instead would make `2.10`
+    part of Step `2.1`.
+    """
+    return dod_id.rstrip(ascii_lowercase)
+
+
+def _has_step_section(engine: str, step: str) -> bool:
+    """Whether the engine has a section heading for this step.
+
+    The trailing digit must not continue, or `Step 2.1` would be found inside
+    `Step 2.10` and the check could never fail for `2.1`.
+    """
+    return re.search(rf"Step {re.escape(step)}(?!\d)", engine) is not None
+
+
 def _never_skippable_steps() -> list[str]:
     """Step numbers whose own engine section heading says NEVER SKIPPABLE."""
     return [
@@ -248,6 +269,26 @@ def _never_skip_ids() -> list[str]:
         if found and "NEVER SKIP" in cells[1].upper():
             ids.append(found.group(1))
     return ids
+
+
+class TestStepIdMatching:
+    """The 2.1 / 2.10 collision, pinned.
+
+    Both lookups below matched by plain string prefix once. Step 2.1 then also
+    collected row 2.10, and the section check for row 2.1 was satisfied by the
+    heading of Step 2.10 — so deleting the 2.1 section would not have failed a
+    single test. Found in the review of PR #14.
+    """
+
+    def test_a_letter_suffix_is_stripped_and_a_second_digit_is_kept(self) -> None:
+        assert _step_of("2.8a") == "2.8"
+        assert _step_of("2.1") == "2.1"
+        assert _step_of("2.10") == "2.10"
+
+    def test_a_step_section_is_matched_on_the_whole_number(self) -> None:
+        engine = "### Check Target (Step 2.10)"
+        assert _has_step_section(engine, "2.10")
+        assert not _has_step_section(engine, "2.1")
 
 
 class TestBaseDefinitionOfDone:
@@ -291,7 +332,7 @@ class TestBaseDefinitionOfDone:
     def test_every_base_step_has_a_section_in_the_engine(self) -> None:
         """A DoD row nobody executes is finding F11 in another shape."""
         engine = _read(WORKFLOW_ENGINE)
-        missing = [i for i in _base_dod_ids() if f"Step {i.rstrip('ab')}" not in engine]
+        missing = [i for i in _base_dod_ids() if not _has_step_section(engine, _step_of(i))]
         assert not missing, f"{WORKFLOW_ENGINE}: base DoD rows without a step section: {missing}"
 
     @pytest.mark.parametrize("skill", CONSUMING_SKILLS, ids=_skill_id)
@@ -319,7 +360,7 @@ class TestBaseDefinitionOfDone:
         """
         marked = _never_skip_ids()
         for step in _never_skippable_steps():
-            rows = [i for i in _base_dod_ids() if i.startswith(step)]
+            rows = [i for i in _base_dod_ids() if _step_of(i) == step]
             assert rows, f"{WORKFLOW_ENGINE}: Step {step} is NEVER SKIPPABLE but has no base DoD row"
             unmarked = [i for i in rows if i not in marked]
             assert not unmarked, (
@@ -429,8 +470,49 @@ def _frontmatter(text: str) -> str:
 
 
 def _frontmatter_field(text: str, key: str) -> str | None:
-    found = re.search(rf"^{key}:\s*(.*)$", _frontmatter(text), re.MULTILINE)
-    return found.group(1).strip() if found else None
+    lines = _frontmatter(text).splitlines()
+    for index, line in enumerate(lines):
+        found = re.match(rf"^{key}:\s*(.*)$", line)
+        if not found:
+            continue
+        value = found.group(1).strip()
+        return _block_scalar_body(lines[index + 1 :]) if BLOCK_SCALAR.match(value) else value
+    return None
+
+
+def _block_scalar_body(rest: list[str]) -> str:
+    """The indented body of a `key: >` or `key: |` value.
+
+    Reading the `key:` line alone returns the marker instead, and a value of
+    one character passes every length check there is.
+    """
+    body = []
+    for line in rest:
+        if line.strip() and not line.startswith((" ", "\t")):
+            break
+        body.append(line.strip())
+    return " ".join(part for part in body if part)
+
+
+class TestFrontmatterReader:
+    """A block scalar must not walk past the length check.
+
+    `description: >` and `description: |` are valid YAML. Reading only the
+    remainder of the `key:` line returns the marker, so a 2000-character
+    description measured one character and passed. Found in the review of
+    PR #14.
+    """
+
+    FOLDED = "---\nname: demo\ndescription: >\n  first line\n  second line\n---\n"
+
+    def test_a_block_scalar_reads_as_its_body(self) -> None:
+        assert _frontmatter_field(self.FOLDED, "description") == "first line second line"
+
+    def test_a_plain_value_still_reads_as_itself(self) -> None:
+        assert _frontmatter_field(self.FOLDED, "name") == "demo"
+
+    def test_a_missing_key_is_still_none(self) -> None:
+        assert _frontmatter_field(self.FOLDED, "compatibility") is None
 
 
 class TestFrontmatter:
@@ -531,6 +613,7 @@ HOST_TOOL_NAMES = {
 
 
 BUILD_INVOCATION = re.compile(r"^.*[Ii]nvoke `build-execution`.*$", re.MULTILINE)
+COVERAGE_READ_PATH = re.compile(r"build/\S*?coverage\.json")
 
 
 class TestCoverageBuildParameters:
@@ -542,6 +625,10 @@ class TestCoverageBuildParameters:
     a missing file, not a wrong build. Only skills that read `coverage.json`
     are held to this; the modernization build measures a `.map` file and has no
     business being forced into Debug.
+
+    The read path is held to the same rule. Checking only the invocation lets a
+    document build Debug and then read somewhere else, which is the same
+    missing file with the same misleading message.
     """
 
     @pytest.mark.parametrize("doc", ALL_SKILL_DOCS, ids=_doc_id)
@@ -557,6 +644,17 @@ class TestCoverageBuildParameters:
         assert not offenders, (
             f"{_doc_id(doc)}: this document reads coverage.json, but invokes the build without "
             f"buildType=Debug: {offenders}. No Debug build, no coverage.json."
+        )
+
+    @pytest.mark.parametrize("doc", ALL_SKILL_DOCS, ids=_doc_id)
+    def test_a_coverage_read_path_names_the_debug_build_type(self, doc: Path) -> None:
+        offenders = sorted(
+            {path for path in COVERAGE_READ_PATH.findall(_read(doc)) if "/test/Debug/" not in path}
+        )
+        assert not offenders, (
+            f"{_doc_id(doc)}: coverage.json is read from a path that is not a Debug build: "
+            f"{offenders}. The build writes to build/<VARIANT>/<BUILD_KIT>/<BUILD_TYPE>/, so any "
+            f"other build type names a directory the coverage build never fills."
         )
 
 

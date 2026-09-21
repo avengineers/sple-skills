@@ -24,7 +24,7 @@ All common workflow rules (forbidden behaviors, retrospective requirements) from
 When the user first invokes this skill:
 
 1. **Confirm component path** — ask which component to improve coverage for if not clear from the request
-2. **Run the document detection** — the globs in *Document Detection* above, before asking anything else. What is worth asking depends on whether a roadmap already exists, so a question asked first can overwrite an agreement that was already made
+2. **Run the document detection** — the globs in *Document Detection* below, before asking anything else. What is worth asking depends on whether a roadmap already exists, so a question asked first can overwrite an agreement that was already made
 3. **A roadmap exists** — report where it stands: current step of total, current line coverage against the **agreed** target from its frontmatter, and the date of the file you picked. Resume there. Do **not** re-negotiate the target — the value in the roadmap is the agreement. Change it only if the user asks, and then say what it was before
 4. **No roadmap exists** — explain the three phases (analysis → iterative test addition → completion) and that every step requires human approval; agree the target, proposing the default from the Domain-Specific Bindings table, and record it in the roadmap frontmatter (`target_metrics.line_coverage_percent`); set expectations — incremental work across multiple sessions, one function per step, not a one-shot "write all tests"
 

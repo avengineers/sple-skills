@@ -72,7 +72,7 @@ Execute: `.venv/Scripts/python plugins/embedded-sple/skills/his-metrics/scripts/
 
 Use the shared [Coverage Analysis](../shared/test-reports/coverage-analysis.md) reference:
 1. Run report target (runs tests + generates coverage): invoke `build-execution` with buildKit=test, buildType=Debug, variant=\<VARIANT\>, target=components\_\<path\>\_report
-2. Parse `build/<VARIANT>/test/Release_fast/components/<path>/coverage.json` for metrics
+2. Parse `build/<VARIANT>/test/Debug/components/<path>/coverage.json` for metrics
 
 ### Step 4: Apply Own Checklists
 
@@ -113,7 +113,7 @@ A comprehensive review is considered **complete** when the following criteria ar
 | 3 | **Static Analysis Reviewed** | Fresh Polyspace analysis triggered by user and confirmed complete; findings read from the IDE diagnostics **after** user confirmation — pre-existing cached results never accepted |
 | 4 | **No Red/Critical Findings** | Zero unaddressed Red (RTE) Polyspace findings |
 | 5 | **MISRA Mandatory Rules** | All mandatory rule violations addressed or formally deviated |
-| 6 | **CHK_Code Checklist Applied** | All applicable items from the 41-item CHK_Code checklist reviewed — using SCA results for MISRA/RTE-related items |
+| 6 | **CHK_Code Checklist Applied** | All applicable items from the 43-item CHK_Code checklist reviewed — using SCA results for MISRA/RTE-related items |
 | 7 | **BARR-C:2018 Compliance** | Quick scan checklist completed, no high-severity violations |
 | 8 | **HIS Metrics Calculated** | Metrics script executed, all functions exceeding thresholds documented |
 | 9 | **Architecture Reviewed** | `c-architecture-review` skill invoked, coupling/cohesion analyzed |

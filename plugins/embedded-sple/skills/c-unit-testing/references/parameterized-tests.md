@@ -262,9 +262,9 @@ protected:
 ### Pattern 5: Feature-Guarded Cases Inside `Values(...)`
 
 When a feature flag adds extra branches to the function under test, keep the extra cases in the
-**same** `INSTANTIATE_TEST_SUITE_P` but wrap them in `#if`. Put the `,` separator **before** the
-`#if` block so the always-present case stays comma-free and the `Values(...)` list is valid whether
-the flag is 0 or 1:
+**same** `INSTANTIATE_TEST_SUITE_P` but wrap them in `#if`. Put the `,` separator **inside** the
+guard, ahead of the guarded case, so the always-present case stays comma-free and the `Values(...)`
+list is valid whether the flag is 0 or 1:
 
 ```cpp
 INSTANTIATE_TEST_SUITE_P(Suite, Fixture, Values(
