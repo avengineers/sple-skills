@@ -24,7 +24,7 @@ All common workflow rules (forbidden behaviors, retrospective requirements) from
 When the user first invokes this skill:
 
 1. **Confirm component path** — ask which component to modernize if not clear from the request
-2. **Run the document detection** — the globs in *Document Detection* above, before asking anything else. What is worth asking depends on whether a roadmap already exists, so a question asked first can overwrite an agreement that was already made
+2. **Run the document detection** — the globs in *Document Detection* below, before asking anything else. What is worth asking depends on whether a roadmap already exists, so a question asked first can overwrite an agreement that was already made
 3. **A roadmap exists** — report where it stands: current step of total, the metrics against their targets, and the date of the file you picked. Resume there. Do **not** re-ask for the stakeholders or the goals — the roadmap records them. Change them only if the user asks, and then say what they were before
 4. **No roadmap exists** — explain the three phases (analysis → iterative steps → completion) and that every step requires human approval; ask who should review and approve changes, for the roadmap document; set expectations — incremental work across multiple sessions, not a one-shot refactoring
 
@@ -96,7 +96,7 @@ Follow the shared Phase 1 skeleton (check docs → comprehensive review → crea
 
 Invoke `c-code-review-comprehensive`. The comprehensive review includes:
 
-- **CHK_Code Checklist** (41 items) — mandatory
+- **CHK_Code Checklist** (43 items) — mandatory
 - **BARR-C:2018 Compliance** — mandatory
 - Architecture and dependencies analysis
 - Technical debt assessment

@@ -198,7 +198,7 @@ Need to build?
 ├── Component tests: -build -buildKit test -buildType Debug -variants <V> -target components_<path>_unittests
 ├── Integration:     -build -buildKit test -buildType Debug -variants <V> -target integration_<subsystem>_test
 ├── Production:      -build -buildKit prod -variants <V>
-├── Reports:         -build -buildKit test -variants <V> -target components_<path>_report
+├── Reports:         -build -buildKit test -buildType Debug -variants <V> -target components_<path>_report
 ├── All targets:     -build -buildKit <kit> -variants <V>
 ├── Clean + build:   -clean, then re-run build command
 └── Reconfigure:     add -reconfigure to any build command (required after CMakeLists.txt changes)
