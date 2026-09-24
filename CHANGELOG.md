@@ -1,6 +1,92 @@
 # CHANGELOG
 
 
+## v0.2.0 (2026-09-24)
+
+### Bug Fixes
+
+- Resolve the contradictions found in the PR review
+  ([`cb7a19f`](https://github.com/avengineers/sple-skills/commit/cb7a19f0c01a30e6dc03dfa17e86bda20864967a))
+
+The coverage path, the checklist item count and two section pointers contradicted each other or the
+  build that produces the data. Three checks in the suite could not fail for the case they describe:
+  step 2.1 collided with 2.10 by string prefix, and a YAML block scalar walked past the description
+  length check. The eval harness raised a bare KeyError for a case without a query, and could not
+  find a CLI installed as claude.cmd on PATH.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+
+### Features
+
+- Generalize the skill set and make the roadmap rules consistent
+  ([`5221e4a`](https://github.com/avengineers/sple-skills/commit/5221e4a54b3eda0c958612af63c048de86675f4b))
+
+Two bodies of work on the skill documents themselves.
+
+The harvest. Five skills learned from real use in an internal project were generalized into this
+  public set, with every project-specific fact left behind: c-unit-testing (hammocking,
+  parameterized tests, traceability),
+
+test-coverage-roadmap (consult the specification, choose the test level), c-integration-testing
+  (spec-first, reset discipline, subsystem testing), conventional-commits (type test-only changes as
+  test:), and c-code-review-checklist (interface ownership). AGENTS.md now requires code examples to
+  come from the SPLED demo project, so an example can be checked instead of believed.
+
+The consistency pass over the roadmap skills. Their rules contradicted each other and their own
+  workflow steps: the required-skills tables did not match the steps they described, three different
+  test file naming conventions were in use, the branch coverage gate was invisible in the definition
+  of done, and both roadmap skills asked the user for facts their own roadmap document already held.
+  Coverage is now reported per file and per function, the target is configurable instead of
+  hard-coded at 90%, and untestable code has a documented way out.
+
+Everything that names a tool now describes the capability instead - the documents run under more
+  than one agent harness, and one host's tool names do not exist in another.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+
+### Testing
+
+- Add two layers of skill validation
+  ([`e2b1d54`](https://github.com/avengineers/sple-skills/commit/e2b1d54e6e0770a0518a2d11881144af72cbd904))
+
+A skill document cannot be verified by reading it, so this adds two instruments that answer
+  different questions.
+
+Layer 1, test/skills/ - mechanical consistency, 513 checks, no model calls, milliseconds. It runs in
+  the pull-request pipeline on Linux and Windows and holds the skills to their own rules: the
+  definition of done rows that no document may drop, required-skills tables that match the workflow
+  steps, cross-document links and section references that resolve, frontmatter fields that exist in
+  the specification, documented paths that are real, and no host-specific tool names. Every check
+  was written red first and then verified against a deliberate regression - five passed their own
+  sabotage and had to be sharpened.
+
+Layer 2, scripts/trigger_eval.py and test/evals/ - which skill a prompt actually reaches. The
+  description in the frontmatter decides whether a skill triggers at all, and a rewrite that reads
+  better may trigger worse. The harness runs the CLI with the exploring tools denied, so the agent
+  either invokes a skill or answers in prose, which isolates the routing decision. It loads the
+  working tree and verifies from the run's own init event that it did, because a first version
+  silently measured the plugin installed for the account and compared a released description with
+  itself.
+
+This layer costs one model call per case per run and is driven by hand, never in CI. What it can and
+  cannot say is written down in test/evals/README.md, including two rules that each cost a wasted
+  measurement round: change one description at a time, and never rank two wordings on three runs -
+  the same case on the same tree gave 4/7 and 0/3 an hour apart.
+
+uv.lock carries the dependencies this suite needs, resolved to the current patch levels: coverage
+  7.16.1 and pygments 2.21.0. The 634 tests pass on them.
+
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
+
+- **ci**: Enforce coverage as a hard merge gate
+  ([`19b486a`](https://github.com/avengineers/sple-skills/commit/19b486a9bb289afa64fbd23f4c6cf9e73caba449))
+
+Add codecov.yml requiring 100% coverage of changed lines (patch) and forbidding the overall coverage
+  from dropping below the base commit (project), both as hard failures (informational: false).
+  Mirrors the spl-core setup so either repo can serve as a template. Tests run fully in-process, so
+  no coverage gap.
+
+
 ## v0.1.6 (2026-06-18)
 
 ### Bug Fixes
