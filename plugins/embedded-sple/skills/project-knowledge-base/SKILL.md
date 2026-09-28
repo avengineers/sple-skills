@@ -20,7 +20,7 @@ The most important thing this skill teaches is *when to look things up without b
 - **When needing hardware config, toolchain versions, pin assignments, or memory layout** → check `key_facts.md` instead of guessing
 - **After completing a ticket or resolving a bug** → update `issues.md` or `bugs.md`
 
-If `doc/project_notes/` does not exist yet but the user asks to log a bug, record a decision, or track work, offer to initialize the memory system first (see Initial Setup below). Don't silently discard the information — capture it.
+**If `doc/project_notes/` does not exist, this skill does nothing** — no offer, no question, no log. Other skills end with "document findings using `project-knowledge-base`"; in a project without memory that step is skipped silently. Only when the user asks you directly to record something in the project memory, say in one sentence that none exists. Setup happens only when the user asks for it (see Setup below).
 
 This is not optional housekeeping. If `doc/project_notes/` exists, *always consult it* before suggesting solutions that might contradict documented decisions or re-introduce known bugs. The few seconds of reading save hours of rework.
 
@@ -33,62 +33,9 @@ This skill **owns the structure and format** of `doc/project_notes/`. Other skil
 - `retrospective` → appends to `bugs.md`, `decisions.md`, `issues.md` after sprint retrospectives
 - `modernization-roadmap` / `test-coverage-roadmap` → write their own `*_lessons_learned.md` files into `doc/project_notes/`
 
-The difference: this skill handles **setup, day-to-day updates, and proactive consultation**. The `retrospective` skill handles **structured post-mortem analysis** that produces entries as a by-product. They complement each other; don't use both for the same update.
+The difference: this skill handles **setup, day-to-day updates, and proactive consult## Setup
 
-## Initial Setup
-
-When setting up project memory for the first time, create:
-
-```text
-doc/
-└── project_notes/
-    ├── bugs.md         # Bug log with solutions
-    ├── decisions.md    # Architectural Decision Records (ADRs)
-    ├── key_facts.md    # Hardware config, toolchain, interfaces
-    └── issues.md       # Work log with ticket references
-```
-
-Use `doc/project_notes/` (not `memory/`) so it reads as standard engineering documentation that human developers will maintain alongside AI tools.
-
-Copy initial content from the templates in this skill's `references/` directory:
-
-- `references/bugs_template.md` → `bugs.md`
-- `references/decisions_template.md` → `decisions.md`
-- `references/key_facts_template.md` → `key_facts.md`
-- `references/issues_template.md` → `issues.md`
-
-## Configure AI Tool Instructions
-
-Add a "Project Memory System" section to the project's instruction file (`AGENTS.md`, `CLAUDE.md`, or `.github/copilot-instructions.md` — whichever exists). If none exists, create `AGENTS.md` in the repository root.
-
-The section should contain:
-
-```markdown
-## Project Memory System
-
-This project maintains institutional knowledge in `doc/project_notes/`.
-
-### Memory Files
-
-- **bugs.md** — Bug log with dates, root causes, solutions, and prevention notes
-- **decisions.md** — Architectural Decision Records (ADRs) with context and trade-offs
-- **key_facts.md** — Hardware config, toolchain versions, pin assignments, memory layout
-- **issues.md** — Work log with ticket IDs and URLs
-
-### When to Consult Memory
-
-- Before proposing architectural changes → check `decisions.md`
-- When encountering errors or faults → search `bugs.md`
-- When needing project configuration → read `key_facts.md`
-- After completing work → update `issues.md`
-
-### Style
-
-- Bullet lists preferred; tables are OK for structured data (memory maps, pin assignments)
-- Keep entries concise (1-3 lines)
-- Always include dates
-- Include ticket/doc URLs where available
-```
+When the user asks to set up or initialize project memory, read [references/setup.md](references/setup.md) and propose its steps. Never run them on your own.
 
 ## Updating Memory Files
 
@@ -126,6 +73,8 @@ User: "Let's switch from FreeRTOS to Zephyr"
 ```
 
 ## References
+
+- **references/setup.md** — Setup steps, read only when the user asks for setup
 
 Templates with embedded-specific examples and formatting guidance:
 

@@ -1,0 +1,46 @@
+{
+  "skill": "conventional-commits",
+  "about": "The description names its trigger phrases one by one, and the rewrite for issue #15 changes the sentence around them. The risk is losing a phrase that used to reach the skill. The negative cases are git work that is not a commit, which a description full of 'git' words could pull in.",
+  "cases": [
+    {
+      "query": "commit my changes",
+      "should_trigger": true,
+      "why": "The shortest form of the core case."
+    },
+    {
+      "query": "write a commit message for the staged changes",
+      "should_trigger": true,
+      "why": "Asks for the message only, not the commit. The skill owns the message format."
+    },
+    {
+      "query": "I finished the fix for the ADC channel bitmask, stage and commit it",
+      "should_trigger": true,
+      "why": "The end of a work step, which the description claims explicitly."
+    },
+    {
+      "query": "save my changes",
+      "should_trigger": true,
+      "why": "Trigger phrase without the word 'commit' or 'git'."
+    },
+    {
+      "query": "which conventional commit type does a change to a SKILL.md get",
+      "should_trigger": true,
+      "why": "A question about the type rules, which only this skill holds."
+    },
+    {
+      "query": "resolve the merge conflict in src/uart.c",
+      "should_trigger": false,
+      "why": "Git work, but no commit message to write."
+    },
+    {
+      "query": "explain what this git log output shows",
+      "should_trigger": false,
+      "why": "Reading history, not writing it."
+    },
+    {
+      "query": "show me which files changed since yesterday",
+      "should_trigger": false,
+      "why": "A status question. Pulling in the commit workflow here starts staging talk nobody asked for."
+    }
+  ]
+}

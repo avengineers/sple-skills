@@ -2,7 +2,7 @@
 
 Detailed branching strategies and workflow patterns for trunk-based development.
 
-> **NOTE**: For commit message formatting (types, JIRA extraction, etc.), 
+> **NOTE**: For commit message formatting (types, issue reference extraction, etc.),
 > see the `conventional-commits` skill.
 
 ## Core Principles
@@ -15,29 +15,43 @@ Detailed branching strategies and workflow patterns for trunk-based development.
 
 ## Branch Naming Convention
 
-Format: `feature/<JIRA-ISSUE>-<short-description>`
+A branch carries its issue reference so the commit message can pick it up. **The shape depends on
+the host**, because the tracker does:
 
-JIRA issue is extracted from the branch name for commit messages.
+| Host | Tracker | Format | Example |
+|------|---------|--------|---------|
+| `github.com` | GitHub issue | `<issue-number>-<short-description>` | `358-uart-config` |
+| `github.com` | GitHub issue | `feature/<issue-number>-<short-description>` | `feature/358-uart-config` |
+| Any other host | JIRA | `feature/<JIRA-ISSUE>-<short-description>` | `feature/PROJ-1001-uart-config` |
+
+On GitHub the first shape is the normal case: GitHub generates the branch name from the issue, with
+no prefix. A JIRA key never belongs in a branch on `github.com` — the `conventional-commits` skill
+does not extract it there, and many of these repositories are public.
 
 ### Examples
 
 ```
+On github.com:
+✓ 358-uart-config
+✓ feature/358-uart-config
+
+On any other host:
 ✓ feature/PROJ-1001-uart-config
 ✓ feature/PROJ-1002-gpio-toggle
-✓ feature/PROJ-1003-hal-spi-driver
 ✓ feature/PROJ-2001-fix-adc-bitmask
-✓ feature/PROJ-3001-update-docs
+
+Anywhere, when there is no issue:
+✓ feature/uart-config (valid, the commit gets no reference)
 ```
 
 ### Avoid
 
 ```
-✗ feature/new-feature (missing JIRA issue)
 ✗ feature/PROJ-1001 (missing description)
-✗ uart-config (missing prefix)
-✗ feature/PROJ-1001-uart (lowercase JIRA issue)
+✗ feature/proj-1001-uart (lowercase JIRA key is not recognised)
 ✗ feature/SPLE_1001_uart (use hyphens)
 ✗ dev/PROJ-1001-uart (use 'feature' not 'dev')
+✗ feature/PROJ-1001-uart on github.com (JIRA key on a GitHub host)
 ```
 
 ## Standard Workflows
@@ -51,7 +65,8 @@ JIRA issue is extracted from the branch name for commit messages.
 git checkout develop
 git pull origin develop
 
-# 2. Create feature branch (include JIRA issue)
+# 2. Create feature branch (include the issue reference for this host,
+#    see Branch Naming Convention)
 git checkout -b feature/PROJ-1001-uart-config
 
 # 3. Implement feature
@@ -252,7 +267,7 @@ git push origin develop
 
 ```bash
 # Rebase feature commits onto develop
-git checkout feature/PROJ-1001-PROJ-1001-uart-config
+git checkout feature/PROJ-1001-uart-config
 git rebase develop
 git checkout develop
 git merge --ff-only feature/PROJ-1001-uart-config

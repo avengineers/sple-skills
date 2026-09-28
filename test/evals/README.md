@@ -115,6 +115,22 @@ about fifty model calls each. **Do not attempt a third before the experiment abo
 
 `test-coverage-roadmap.json` passed when it was last measured, but not since this tree changed.
 
+`conventional-commits.json` was added for issue #15 and measured on 2026-09-28 on `sonnet`, before
+and after the description rewrite:
+
+| Case | Before (3 runs) | After (3 runs) |
+| --- | --- | --- |
+| commit my changes | 3/3 | 3/3 |
+| write a commit message for the staged changes | 3/3 | 3/3 |
+| I finished the fix for the ADC channel bitmask, stage and commit it | 3/3 | 2/3 — re-measured at 10 runs: 7/10 before, 8/10 after |
+| save my changes | 3/3 | 3/3 |
+| which conventional commit type does a change to a SKILL.md get | 0/3 | 1/3 |
+| the three negative cases | 0/3 each | 0/3 each |
+
+The drop in the third row was noise, as the 10-run check shows; `commit` from another plugin is the
+competitor there. The type question is **red in both**: a question *about* the rules is answered in
+prose instead of reaching the skill. Open, not caused by the rewrite.
+
 ## Reading the result
 
 A case passes when the trigger rate reaches the threshold (`--threshold`, 0.5 by default); a

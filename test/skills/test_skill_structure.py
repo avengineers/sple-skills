@@ -684,6 +684,51 @@ class TestHarnessNeutrality:
         )
 
 
+INSTRUCTION_FILE = re.compile(r"AGENTS\.md|CLAUDE\.md|copilot-instructions\.md")
+WRITE_VERB = re.compile(r"\b(?:add|append|create|insert|write)\b", re.IGNORECASE)
+INLINE_CODE = re.compile(r"`[^`]*`")
+FENCED_BLOCK = re.compile(r"^```.*?^```", re.MULTILINE | re.DOTALL)
+ANY_HEADING = re.compile(r"^#{1,4}\s", re.MULTILINE)
+
+
+def _sections(text: str) -> list[str]:
+    starts = [match.start() for match in ANY_HEADING.finditer(text)]
+    bounds = [0, *starts, len(text)]
+    return [text[a:b] for a, b in zip(bounds, bounds[1:]) if text[a:b].strip()]
+
+
+class TestAgentContract:
+    """No skill writes into the project's instruction file without asking.
+
+    `AGENTS.md`, `CLAUDE.md` and `.github/copilot-instructions.md` are the
+    developer's contract with every agent in the repository. `conventional-commits`
+    used to add a JIRA rule there on first use, unasked, and `project-knowledge-base`
+    created `AGENTS.md` when none existed — while also triggering proactively.
+    A section that names one of these files next to a write instruction must
+    therefore ask the human first. Words inside backticks or a code block do not
+    count as an instruction: `docs: add README` is an example commit, not an order.
+
+    The match is per section, not per line: the file name and the order to write
+    usually sit in different sentences, and a line-level check passed a section
+    whose `ask_user` had been removed on purpose.
+    """
+
+    @pytest.mark.parametrize("doc", ALL_SKILL_DOCS, ids=_doc_id)
+    def test_an_instruction_file_is_written_only_after_asking(self, doc: Path) -> None:
+        offenders = [
+            section.splitlines()[0]
+            for section in _sections(_read(doc))
+            if "ask_user" not in section
+            and INSTRUCTION_FILE.search(section)
+            and WRITE_VERB.search(INLINE_CODE.sub("", FENCED_BLOCK.sub("", section)))
+        ]
+        assert not offenders, (
+            f"{_doc_id(doc)}: {offenders} tell the agent to write into the project's "
+            f"instruction file without asking. That file is the developer's contract; show "
+            f"the change and use `ask_user` before writing it."
+        )
+
+
 class TestFirstContact:
     """Look for the documents before asking what they already answer.
 
