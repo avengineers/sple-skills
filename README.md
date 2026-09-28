@@ -84,9 +84,9 @@ Then open Extensions view, search `@agentPlugins`, and install from the list.
 
 | Skill | Description |
 |-------|-------------|
-| **conventional-commits** | Conventional commit messages with JIRA issue extraction |
+| **conventional-commits** | Conventional commit messages with the issue reference from the branch, matched to the git host |
 | **retrospective** | Structured retrospectives after development phases |
-| **project-knowledge-base** | Maintain project context with decisions, bugs, and issues |
+| **project-knowledge-base** | Maintain project context with decisions, bugs, and issues. Off until you ask for it: say *set up project memory* to create `doc/project_notes/` |
 | **modernization-roadmap** | Systematic legacy C component modernization |
 
 ## Contributing

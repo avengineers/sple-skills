@@ -1,29 +1,19 @@
 ---
 name: conventional-commits
-description: Standard for creating conventional commit messages with JIRA issue extraction from branch names. Use this skill whenever changes need to be committed — including after completing any coding task, bug fix, refactoring, test addition, or documentation update. Trigger on any commit-related activity such as "git commit", "commit changes", "stage and commit", "save my changes", "commit message", "conventional commit", or when finishing a workflow step that produces file changes.
+description: Standard for creating conventional commit messages, with the issue reference taken from the branch name and matched to the git host (GitHub issue or JIRA). Use this skill whenever changes need to be committed — including after completing any coding task, bug fix, refactoring, test addition, or documentation update. Trigger on any commit-related activity such as "git commit", "commit changes", "stage and commit", "save my changes", "commit message", "conventional commit", or when finishing a workflow step that produces file changes.
 ---
 
 # Conventional Commits
 
-Standard guide for creating properly formatted conventional commit messages with JIRA issue extraction.
+Standard guide for creating properly formatted conventional commit messages with the issue reference taken from the branch name.
 
-> **Philosophy**: Clear, consistent commit messages that document change history and link to JIRA issues.
+> **Philosophy**: Clear, consistent commit messages that document change history and link to the issue they belong to.
 
 ---
 
 ## Agent Execution Instructions
 
-Following a consistent order prevents mistakes like committing unstaged files or forgetting the JIRA reference. The steps below ensure every commit is traceable and well-formatted.
-
-### First-Run Setup: Ensure AGENTS.md Enforcement
-
-On the first invocation of this skill in a repository, check whether the project's `AGENTS.md` (or `CLAUDE.md` or `.github/copilot-instructions.md`) contains a mandatory commit rule. If not, add the following to the Git Workflow section:
-
-```markdown
-- **MANDATORY**: Before every `git commit`, extract the JIRA issue ID from the current branch name and include it in the commit subject line. Format: `<type>: <description> (<ISSUE-REF>)`. Use the `conventional-commits` skill workflow for proper formatting.
-```
-
-This ensures all agents working in the repository follow the convention — even if this skill is not explicitly invoked.
+Following a consistent order prevents mistakes like committing unstaged files or forgetting the issue reference. The steps below ensure every commit is traceable and well-formatted.
 
 ### Commit Workflow
 
@@ -46,7 +36,7 @@ When committing changes — whether triggered directly by the user or as the fin
 
 3. Extract issue reference from branch name
    → Run extraction command (see Issue Reference Extraction below)
-   → Follows priority: JIRA > GitHub issue > none
+   → The tracker follows the git host: GitHub issue on github.com, JIRA elsewhere
 
 4. Determine commit type
    → Analyze staged changes to select appropriate type
@@ -90,7 +80,7 @@ If no issue reference is found in the branch name, omit the parenthesized suffix
 |---------|------|
 | **Type** | One of: `feat`, `fix`, `refactor`, `style`, `chore`, `docs`, `test` |
 | **Description** | Max 72 chars total subject line, imperative mood, lowercase, no period |
-| **Issue Ref** | Auto-extracted from branch: JIRA (`PROJ-1234`), GitHub (`#123`), or omitted |
+| **Issue Ref** | Auto-extracted from branch, matched to the host: GitHub (`#123`), JIRA (`PROJ-1234`), or omitted |
 | **Body** | Optional, wrap at 72 chars, explain "why" not "what" |
 
 ---
@@ -166,23 +156,32 @@ prompt files, agent definitions, plugin manifests)?
 
 ## Issue Reference Extraction
 
-The extraction follows a priority chain: JIRA first, then GitHub issue, then no reference. This ensures the commit always links to the right tracker.
+**The tracker follows the host, not a fixed priority.** Read the host from `git remote get-url origin` and extract only what that host can resolve:
+
+| Host | Tracker | Branch shape it produces | Reference |
+|------|---------|--------------------------|-----------|
+| `github.com` | GitHub issue | `358-short-description` — GitHub generates the branch from the issue, so there is **no prefix** | `(#358)` |
+| Any other host | JIRA | `feature/PROJ-1234-short-description` | `(PROJ-1234)` |
+
+> **CRITICAL**: On a `github.com` remote, **never** extract a JIRA key, even when the branch name contains one. Many of these repositories are public, and a JIRA key names an internal ticket that does not resolve for anyone outside the organisation. Once committed and pushed, it cannot be taken back. A branch with no GitHub issue number gets **no reference at all** — that is the correct outcome, not a fallback to JIRA.
 
 ### PowerShell
 
 ```powershell
 $branch = git rev-parse --abbrev-ref HEAD
+$remote = git remote get-url origin 2>$null
 
-# Priority 1: JIRA issue (any project key, e.g., PROJ-1234, HW-89)
-if ($branch -match '([A-Z]{2,}-\d+)') {
+if ($remote -match 'github\.com') {
+    # GitHub issue: number at the start of the branch or after a slash
+    if ($branch -match '(?:^|/)(\d+)[-/]') { $issueRef = "(#$($matches[1]))" }
+    else { $issueRef = "" }
+} elseif ($branch -match '([A-Z]{2,}-\d+)') {
+    # JIRA issue (any project key, e.g., PROJ-1234, HW-89)
     $issueRef = "($($matches[1]))"
-}
-# Priority 2: GitHub issue (number after /, e.g., feature/123-description)
-elseif ($branch -match '/(\d+)[-/]') {
+} elseif ($branch -match '(?:^|/)(\d+)[-/]') {
     $issueRef = "(#$($matches[1]))"
-}
-# No issue found — commit without reference
-else {
+} else {
+    # No issue found — commit without reference
     $issueRef = ""
 }
 Write-Host "Issue reference: $issueRef"
@@ -192,16 +191,21 @@ Write-Host "Issue reference: $issueRef"
 
 ```bash
 branch=$(git rev-parse --abbrev-ref HEAD)
+remote=$(git remote get-url origin 2>/dev/null)
 
-# Priority 1: JIRA issue (any project key, e.g., PROJ-1234, HW-89)
-jira_issue=$(echo "$branch" | grep -oE '[A-Z]{2,}-[0-9]+' | head -1)
-if [ -n "$jira_issue" ]; then
-    issue_ref="($jira_issue)"
+number=$(echo "$branch" | grep -oE '(^|/)[0-9]+[-/]' | grep -oE '[0-9]+' | head -1)
+
+if echo "$remote" | grep -qi 'github\.com'; then
+    # GitHub issue only — a JIRA key must never reach a commit here
+    issue_ref=""
+    [ -n "$number" ] && issue_ref="(#$number)"
 else
-    # Priority 2: GitHub issue (number after /, e.g., feature/123-description)
-    gh_issue=$(echo "$branch" | sed -n 's|.*/\([0-9]\+\)-.*|\1|p')
-    if [ -n "$gh_issue" ]; then
-        issue_ref="(#$gh_issue)"
+    # JIRA issue (any project key, e.g., PROJ-1234, HW-89)
+    jira_issue=$(echo "$branch" | grep -oE '[A-Z]{2,}-[0-9]+' | head -1)
+    if [ -n "$jira_issue" ]; then
+        issue_ref="($jira_issue)"
+    elif [ -n "$number" ]; then
+        issue_ref="(#$number)"
     else
         issue_ref=""
     fi
@@ -211,12 +215,20 @@ echo "Issue reference: $issue_ref"
 
 ### Branch Naming Convention
 
-Feature branches should include an issue reference so it can be extracted automatically — this is the link between your code changes and the backlog item:
+A branch should carry its issue reference so the extraction finds it — this is the link between your code changes and the backlog item. **Which shape is correct depends on the host**, so check the remote before creating a branch:
 
 ```text
+On github.com — GitHub generates the branch name from the issue:
+358-short-description                 → (#358)
+feature/358-short-description         → (#358)
+feature/PROJ-1234-short-description   → no suffix (a JIRA key is never used here)
+
+On any other host:
 feature/PROJ-1234-short-description   → (PROJ-1234)
 feature/PROJ-567-short-description    → (PROJ-567)
 feature/123-short-description         → (#123)
+
+Anywhere:
 feature/short-description             → no suffix
 ```
 
@@ -309,14 +321,11 @@ git add test/StateMgr/test_StateMgr.cc
 git --no-pager diff --staged --stat
 
 # ========== STEP 2: Extract issue reference ==========
-$branch = git rev-parse --abbrev-ref HEAD
-if ($branch -match '([A-Z]{2,}-\d+)') {
-    $issueRef = "($($matches[1]))"
-} elseif ($branch -match '/(\d+)[-/]') {
-    $issueRef = "(#$($matches[1]))"
-} else {
-    $issueRef = ""
-}
+# Run the PowerShell snippet from "Issue Reference Extraction" above. It reads
+# the remote to decide the tracker and sets $branch and $issueRef, which the
+# lines below use. Do not retype a shorter version here: a chain that matches
+# a JIRA key without checking the host leaks an internal ticket ID into a
+# public history.
 Write-Host "Branch: $branch"
 Write-Host "Issue reference: $issueRef"
 
@@ -338,7 +347,7 @@ git --no-pager log --oneline -1
 
 ### Description Length Check
 
-The total subject line (type + description + JIRA) should stay within 72 characters. This keeps `git log --oneline` and GitHub's commit list readable without truncation:
+The total subject line (type + description + issue reference) should stay within 72 characters. This keeps `git log --oneline` and GitHub's commit list readable without truncation:
 
 ```powershell
 $message = "feat: add feature description (PROJ-1234)"
@@ -359,7 +368,7 @@ Before committing, verify:
 - [ ] **Description**: Lowercase first letter
 - [ ] **Description**: No period at end
 - [ ] **Description**: Includes component name if applicable
-- [ ] **Issue Ref**: Extracted from branch name (JIRA, GitHub, or none)
+- [ ] **Issue Ref**: Extracted from branch name, matched to the host (GitHub issue, JIRA key, or none)
 - [ ] **Length**: Total subject line ≤72 characters
 - [ ] **Body**: Added if change is complex (optional)
 
@@ -379,6 +388,5 @@ Before committing, verify:
 
 ## References
 
-- AGENTS.md - Project-wide commit conventions
 - [references/branch-patterns.md](references/branch-patterns.md) - Branch workflow and merge strategy
 - `project-knowledge-base` skill - Log completed work in `doc/project_notes/issues.md`
