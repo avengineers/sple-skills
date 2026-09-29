@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.2.1 (2026-09-29)
+
+### Bug Fixes
+
+- Derive the issue reference from the git host
+  ([#15](https://github.com/avengineers/sple-skills/pull/15),
+  [`6e8c8ca`](https://github.com/avengineers/sple-skills/commit/6e8c8cafddedcba4fb6b8e7c98f4db0d892ffcfd))
+
+github.com yields a GitHub issue number only, never a JIRA key; other hosts try JIRA first. No skill
+  edits the agent contract unasked: conventional-commits drops its First-Run Setup,
+  project-knowledge-base moves its setup to references/setup.md and stays silent without memory.
+
+Also adds CLAUDE.md (imports AGENTS.md) and refreshes uv.lock.
+
+Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
+
+
 ## v0.2.0 (2026-09-24)
 
 ### Bug Fixes
