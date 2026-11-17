@@ -1,6 +1,24 @@
 # CHANGELOG
 
 
+## v0.2.2 (2026-11-17)
+
+### Bug Fixes
+
+- Honour standing commit permissions, add build and ci types
+  ([#17](https://github.com/avengineers/sple-skills/pull/17),
+  [`022221e`](https://github.com/avengineers/sple-skills/commit/022221e61d32228e358b937694245e8f0ffcf120))
+
+The skill blocked every commit without an instruction in the conversation, even when the user had
+  granted a standing permission in their own instructions. Repository instructions still cannot
+  grant it.
+
+build and ci were missing, so build and pipeline changes ended up as chore and failed commit checks
+  that require them. chore now covers only what is neither.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+
 ## v0.2.1 (2026-09-29)
 
 ### Bug Fixes
