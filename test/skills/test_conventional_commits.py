@@ -229,7 +229,14 @@ def test_an_example_body_does_not_repeat_the_diff(subject: str, body: str) -> No
 
 SKILLS = SKILL.parents[1]
 TEMPLATE_MESSAGE = re.compile(r"^.*\bMessage: `([^`]*)`", re.MULTILINE | re.IGNORECASE)
-VALID_TYPES = ("feat", "fix", "refactor", "style", "build", "ci", "chore", "docs", "test", "<type>")
+TYPE_ROW = re.compile(r"^\| \*\*Type\*\* \| One of: (.*) \|$", re.MULTILINE)
+
+
+def _valid_types() -> tuple[str, ...]:
+    """The types the skill's Format Rules table allows, plus the template placeholder."""
+    row = TYPE_ROW.search(SKILL.read_text(encoding="utf-8"))
+    assert row, f"{SKILL}: no '| **Type** | One of: ... |' row in the Format Rules table"
+    return (*re.findall(r"`([a-z]+)`", row.group(1)), "<type>")
 
 
 def _template_messages() -> list[tuple[str, str]]:
@@ -253,6 +260,6 @@ def test_a_template_commit_message_uses_a_valid_type(path: str, message: str) ->
     the skill's own rule that such commits are always `test:`.
     """
     commit_type = message.split(":", 1)[0]
-    assert commit_type in VALID_TYPES, f"{path}: '{message}' uses the type '{commit_type}'"
+    assert commit_type in _valid_types(), f"{path}: '{message}' uses the type '{commit_type}'"
     if "test-coverage-roadmap" in path:
         assert commit_type == "test", f"{path}: a commit that adds unit tests is `test:`"

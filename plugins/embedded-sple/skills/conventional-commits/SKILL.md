@@ -93,11 +93,13 @@ If no issue reference is found in the branch name, omit the parenthesized suffix
 
 The diff already shows what changed. A body that repeats it is noise that hides the one thing the diff cannot show: the reason.
 
-> **RULE**: Never list files, settings, versions, dependencies or test files in the body, and
-> never describe the change step by step. No bullet lists. Write the reason in a few lines of
-> prose, or leave the body out.
+> **RULE**: Do not list what changed: files, settings, versions, dependencies or test files.
+> Do not describe the change step by step, and do not use bullet lists. Write the reason in a
+> few lines of prose, or leave the body out. A version or a name that is part of the reason stays.
 
 Test it line by line: if a reader could get the line from `git show`, delete it.
+
+Footers such as `BREAKING CHANGE:` and `Co-Authored-By:` are not part of the body. Keep them.
 
 ---
 
