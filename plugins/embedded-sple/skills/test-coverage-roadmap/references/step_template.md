@@ -138,7 +138,7 @@ Update the step entry with:
 #### Commit
 
 - SHA: `<commit_sha>`
-- Message: `feat: add <component> unit tests for <scope> (<JIRA-ISSUE>)`
+- Message: `test: add <component> unit tests for <scope> (<ISSUE-REF>)`
 ```
 
 ---

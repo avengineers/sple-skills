@@ -128,5 +128,5 @@ Update the step entry with:
 #### Commit
 
 - SHA: `<full_sha>`
-- Message: `modernization(<component>): <description>`
+- Message: `<type>: <description> (<ISSUE-REF>)` — `refactor:` for production code, `test:` for a step that only adds tests
 ```
