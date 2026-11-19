@@ -169,3 +169,90 @@ def test_the_workflow_example_carries_no_host_blind_extraction() -> None:
         "so following it puts an internal ticket ID into a commit on a public "
         "GitHub-hosted repository. Defer to the extraction section instead of copying it."
     )
+
+
+COMMIT_EXAMPLES_HEADING = re.compile(r"^##\s+Commit Examples\s*$", re.MULTILINE)
+BAD_EXAMPLE_MARKER = "**Before — do not copy:**"
+FENCE = re.compile(r"^```[\w-]*\s*$(.*?)^```\s*$", re.MULTILINE | re.DOTALL)
+FILE_PATH = re.compile(
+    r"\b[\w./-]+\.(?:c|cc|cpp|h|hpp|py|md|json|yaml|yml|toml|lock|txt|cmake|ps1|sh|js|ts|ini|cfg)\b"
+)
+LIST_ITEM = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s")
+SUBJECT = re.compile(r"^[a-z]+(?:\([^)]*\))?!?: ")
+
+
+def _example_bodies() -> list[tuple[str, str]]:
+    """(subject, body) of every commit example, minus the marked bad example."""
+    text = SKILL.read_text(encoding="utf-8")
+    start = COMMIT_EXAMPLES_HEADING.search(text)
+    assert start, f"{SKILL}: no '## Commit Examples' section"
+    rest = text[start.end() :]
+    end = NEXT_H2.search(rest)
+    section = rest[: end.start()] if end else rest
+
+    bodies = []
+    for fence in FENCE.finditer(section):
+        preceding = section[: fence.start()].rstrip().splitlines()
+        if preceding and preceding[-1].strip() == BAD_EXAMPLE_MARKER:
+            continue
+        subject, *rest_lines = fence.group(1).strip().splitlines()
+        body = "\n".join(rest_lines).strip()
+        # A block of one-line subjects is a list of examples, not a body.
+        if body and not all(SUBJECT.match(line) for line in body.splitlines() if line.strip()):
+            bodies.append((subject, body))
+    return bodies
+
+
+def test_the_examples_include_a_body() -> None:
+    """Guards the next test: an empty list would pass it for nothing."""
+    assert _example_bodies(), f"{SKILL}: no commit example with a body left to check"
+
+
+@pytest.mark.parametrize(
+    "subject, body", _example_bodies(), ids=[subject for subject, _ in _example_bodies()]
+)
+def test_an_example_body_does_not_repeat_the_diff(subject: str, body: str) -> None:
+    """Agents copy the examples, not the rule above them.
+
+    Bodies that listed files and changed settings taught agents to write commit
+    bodies that only repeat what the diff shows. An example body explains why,
+    in a few lines of prose. Only a block marked as the bad example may show
+    the wrong shape.
+    """
+    bullets = [line for line in body.splitlines() if LIST_ITEM.match(line)]
+    paths = FILE_PATH.findall(body)
+    assert not bullets and not paths, (
+        f"{SKILL}: the body of '{subject}' lists {bullets or paths}. "
+        "A body explains why; the diff already shows what changed."
+    )
+
+
+SKILLS = SKILL.parents[1]
+TEMPLATE_MESSAGE = re.compile(r"^.*\bMessage: `([^`]*)`", re.MULTILINE | re.IGNORECASE)
+VALID_TYPES = ("feat", "fix", "refactor", "style", "build", "ci", "chore", "docs", "test", "<type>")
+
+
+def _template_messages() -> list[tuple[str, str]]:
+    return [
+        (path.relative_to(SKILLS).as_posix(), message)
+        for path in sorted(SKILLS.rglob("*.md"))
+        for message in TEMPLATE_MESSAGE.findall(path.read_text(encoding="utf-8"))
+    ]
+
+
+def test_the_templates_carry_commit_messages() -> None:
+    """Guards the next test: an empty list would pass it for nothing."""
+    assert _template_messages(), f"{SKILLS}: no '- Message: `...`' line found in any template"
+
+
+@pytest.mark.parametrize("path, message", _template_messages())
+def test_a_template_commit_message_uses_a_valid_type(path: str, message: str) -> None:
+    """Roadmap templates suggest commit subjects, and agents fill them in as given.
+
+    An invented type fails commitlint, and `feat:` on a test-only commit breaks
+    the skill's own rule that such commits are always `test:`.
+    """
+    commit_type = message.split(":", 1)[0]
+    assert commit_type in VALID_TYPES, f"{path}: '{message}' uses the type '{commit_type}'"
+    if "test-coverage-roadmap" in path:
+        assert commit_type == "test", f"{path}: a commit that adds unit tests is `test:`"

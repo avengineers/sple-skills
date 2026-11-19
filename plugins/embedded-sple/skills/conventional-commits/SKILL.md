@@ -51,7 +51,7 @@ When committing changes — whether triggered directly by the user or as the fin
 5. Generate commit message
    → With issue:    <type>: <description> (<ISSUE-REF>)
    → Without issue: <type>: <description>
-   → Optional: Add body for complex changes
+   → Body only when the why is not obvious: a few lines, never what the diff shows
 
 6. Execute commit
    → Run: git commit -m "<message>"
@@ -87,7 +87,17 @@ If no issue reference is found in the branch name, omit the parenthesized suffix
 | **Type** | One of: `feat`, `fix`, `refactor`, `style`, `build`, `ci`, `chore`, `docs`, `test` |
 | **Description** | Max 72 chars total subject line, imperative mood, lowercase, no period |
 | **Issue Ref** | Auto-extracted from branch, matched to the host: GitHub (`#123`), JIRA (`PROJ-1234`), or omitted |
-| **Body** | Optional, wrap at 72 chars, explain "why" not "what" |
+| **Body** | None by default. When the why is not obvious from the subject: a few lines of prose, wrapped at 72 chars, only the why |
+
+### The Body Explains Why, Nothing Else
+
+The diff already shows what changed. A body that repeats it is noise that hides the one thing the diff cannot show: the reason.
+
+> **RULE**: Never list files, settings, versions, dependencies or test files in the body, and
+> never describe the change step by step. No bullet lists. Write the reason in a few lines of
+> prose, or leave the body out.
+
+Test it line by line: if a reader could get the line from `git show`, delete it.
 
 ---
 
@@ -275,52 +285,68 @@ refactor: move review context steps into shared/review-common
 docs: require SPLED-based code examples in skills (AGENTS.md)
 ```
 
-### Multi-line Commits (Complex Changes)
+### Commits with a Body
+
+A body is the exception. Add one only when the reason is not obvious from the subject, and write only the reason:
 
 ```text
 fix: prevent overflow in timer period calculation (PROJ-1234)
 
-Calculation was using uint16_t causing overflow for periods > 65535.
-Changed to uint32_t to support full range.
-
-Refs: doc/project_notes/bugs/timer_overflow.md
+Periods above 65535 ticks wrapped around in uint16_t, so long
+timeouts fired almost at once.
 ```
 
-### Test Coverage Step Commit
+### Before and After
+
+**Before — do not copy:**
+
+```text
+build: move the component to Python 3.13 (PROJ-1234)
+
+pip in Python 3.11 still trusts the revoked CA certificates, and 3.11
+gets no fixed Windows installer. Move to Python 3.13.
+
+- bootstrap.json: python_version 3.13
+- pyproject.toml: requires-python <3.14,>=3.13
+- poetry.lock: relocked
+  - certifi (fix for the CA incident)
+  - lxml 6.x (lxml 4.9 has no Python 3.13 wheel)
+- conf.py: drop a theme option the new version no longer provides
+```
+
+Everything after the first paragraph is in the diff, and "Move to Python 3.13" repeats the subject. Keep the subject and the reason:
+
+```text
+build: move the component to Python 3.13 (PROJ-1234)
+
+pip in Python 3.11 still trusts the revoked CA certificates, and 3.11
+gets no fixed Windows installer.
+```
+
+### Roadmap Step Commits
+
+The roadmap file records the step number, the files and the coverage gain, so a step commit usually needs no body:
 
 ```text
 test: add StateMgr tests for InitState function (PROJ-1234)
-
-Step 3 of coverage roadmap - 45.2% -> 52.8% coverage (+7.6%)
-- test/StateMgr/test_StateMgr.cc
-
-Refs: doc/test-coverage/StateMgr_coverage_roadmap_20260205.md
 ```
 
-### Modernization Step Commit
+Add a body when the step made a choice the diff cannot explain:
 
 ```text
 refactor: extract StateMgr timer logic to separate module (PROJ-1234)
 
-Step 2 of modernization roadmap
-- Extracted timer functions to StateMgr_Timer.c
-- Added unit tests for timer module
-- Coverage maintained at 78%
-
-Refs: doc/modernization/StateMgr_modernization_roadmap_20260205.md
+Timer fixes kept forcing a retest of every state, because the timer
+code lived inside the state machine.
 ```
 
-### Commit with Skipped Items
+A skipped item is such a choice — say why it is missing:
 
 ```text
 test: add StateMgr tests for ProcessMessage (PROJ-1234)
 
-Step 4 of coverage roadmap - 52.8% -> 58.1% coverage (+5.3%)
-- test/StateMgr/test_StateMgr.cc
-
-SKIPPED: 2.9b (timeout) - approved by user
-
-Refs: doc/test-coverage/StateMgr_coverage_roadmap_20260205.md
+The timeout branch stays untested: it needs a fake clock, which the
+test setup does not have yet. Skipped with the user's approval.
 ```
 
 ---
@@ -384,7 +410,7 @@ Before committing, verify:
 - [ ] **Description**: Includes component name if applicable
 - [ ] **Issue Ref**: Extracted from branch name, matched to the host (GitHub issue, JIRA key, or none)
 - [ ] **Length**: Total subject line ≤72 characters
-- [ ] **Body**: Added if change is complex (optional)
+- [ ] **Body**: Left out, or a few lines that give only the why — no files, settings, versions or bullet lists
 
 ---
 
@@ -394,9 +420,8 @@ Before committing, verify:
 2. **Commit frequently**: Small, focused commits are easier to review
 3. **Use imperative mood**: "add" not "added" or "adds"
 4. **Be specific**: Include component name in description
-5. **Link to artifacts**: Reference roadmaps, bug reports, etc. in body
-6. **Verify before push**: Check commit with `git log -1`
-7. **Document "why"**: Use body to explain reasoning for complex changes
+5. **Verify before push**: Check commit with `git log -1`
+6. **Document "why", not "what"**: The body holds the reason only; the diff shows the rest
 
 ---
 
