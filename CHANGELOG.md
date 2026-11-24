@@ -1,6 +1,20 @@
 # CHANGELOG
 
 
+## v0.2.3 (2026-11-24)
+
+### Bug Fixes
+
+- Keep commit bodies to the why in conventional-commits
+  ([#19](https://github.com/avengineers/sple-skills/pull/19),
+  [`428bb30`](https://github.com/avengineers/sple-skills/commit/428bb30b6d4e1120d3f9c9d7ffa29e18caff9238))
+
+Agents copied the examples, not the rule, and the examples and templates listed files and suggested
+  wrong types, so commit bodies repeated the diff.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+
 ## v0.2.2 (2026-11-17)
 
 ### Bug Fixes
