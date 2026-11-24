@@ -144,7 +144,7 @@ from the first, and the copy that has lost a mandatory row is the one somebody w
 #### Commit
 
 - SHA: `<commit_sha>`
-- Message: `modernization(<component>): <description>`
+- Message: `<type>: <description> (<ISSUE-REF>)` — `refactor:` for production code, `test:` for a step that only adds tests
 
 ---
 

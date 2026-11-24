@@ -108,7 +108,7 @@ git commit -m "feat: implement SPI driver for HAL (PROJ-1003)"
 
 # 5. Third commit - tests
 git add test/test_hal_spi.cc
-git commit -m "feat: add SPI driver unit tests (PROJ-1003)"
+git commit -m "test: add SPI driver unit tests (PROJ-1003)"
 
 # 6. Push all commits
 git push origin feature/PROJ-1003-hal-spi
@@ -333,10 +333,9 @@ git push origin feature/PROJ-1001-uart-config
 
 # 2. Open PR via GitHub/GitLab UI
 # Title: feat: add UART baudrate configuration (PROJ-1001)
-# Description:
-#   - Adds configuration functions
-#   - Updates documentation
-#   - Includes unit tests
+# Description: why the change is needed, in a few lines.
+#   A squash merge can turn it into the commit body, so the same rule
+#   applies: no list of files or changes, the diff shows those.
 ```
 
 ### PR Review Process
